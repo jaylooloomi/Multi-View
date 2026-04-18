@@ -176,12 +176,8 @@ function setupEventListeners() {
             }
 
             if (emptyFrames.length === 0) {
-                // All frames occupied — auto-expand layout and fill from frame 1
-                autoSelectLayout(urls.length);
-                urls.forEach((url, idx) => {
-                    const frameId = idx + 1;
-                    if (frameId <= screenCount) loadUrlToFrame(frameId, url);
-                });
+                // All frames occupied — do nothing
+                return;
             } else {
                 // Fill empty frames sequentially
                 urls.forEach((url, idx) => {
