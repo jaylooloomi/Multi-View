@@ -1,0 +1,29 @@
+{
+   "action": {
+      "default_icon": {
+         "16": "icon16.png",
+         "32": "icon32.png"
+      },
+      "default_title": "Open Side Panel"
+   },
+   "background": {
+      "service_worker": "background.js"
+   },
+   "content_scripts": [ {
+      "all_frames": true,
+      "js": [ "content_script.js" ],
+      "matches": [ "https://*.youtube.com/*", "https://*.nicovideo.jp/*", "https://*.vimeo.com/*", "https://*.tiktok.com/*", "https://*.twitch.tv/*", "https://*.pornhub.com/*" ],
+      "run_at": "document_start"
+   } ],
+   "description": "Automated YouTube playlist manager with multi-screen support in the side panel.",
+   "host_permissions": [ "*://www.youtube.com/*", "*://*.youtube.com/*", "*://*.googlevideo.com/*", "*://*.ytimg.com/*", "*://*.ggpht.com/*", "*://*.google.com/*", "*://*.doubleclick.net/*", "*://*.googleadservices.com/*", "*://*.nicovideo.jp/*", "*://embed.nicovideo.jp/*", "*://*.vimeo.com/*", "*://player.vimeo.com/*", "*://*.tiktok.com/*", "*://*.twitch.tv/*", "*://clips.twitch.tv/*", "*://player.twitch.tv/*", "*://*.pornhub.com/*" ],
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz4tZsfS6Fg93PCMRqqurAh6Gem7B3SYEZbL5/Js/HrApFqjGnmMLYbRG0HGzvuWme6TJhP77oa505H8M2YOfTGQiD7KTYoUIc22p77v4J1H/pgGHDW0cHh3plRNGoFh42yF7/Rhcf9AVNI18ROPTfYH/5kh5sE9ibF2G7VFiNlrIBbye72H+ZIXJe1xHfVJJ8ctnUVZm1MGHcJ5DealV+I1UvsjfXAGAz5OtZfDgxR7Tsn73HvJJHPanpE+kyIh//SWZPtPynrXsytv9zVWbqrSbALEPfkPsP+/lWbZYiGCXCuVdDU57gcquTpO4xv9HVoeEvVqua4Mh/1G8GhzV6QIDAQAB",
+   "manifest_version": 3,
+   "name": "YouTube Multi Auto Playlist",
+   "permissions": [ "sidePanel", "tabs", "storage", "declarativeNetRequest", "declarativeNetRequestWithHostAccess" ],
+   "side_panel": {
+      "default_path": "sidepanel.html"
+   },
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "1.1"
+}
