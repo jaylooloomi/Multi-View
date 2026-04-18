@@ -111,6 +111,25 @@ body {
     color: #f87171;
 }
 
+.btn-group-panel {
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--r);
+    overflow: hidden;
+    gap: 0;
+}
+
+.btn-group-panel .btn-paste {
+    border-radius: 0;
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.btn-group-panel .btn-paste:last-child {
+    border-right: none;
+}
+
 .topbar-right {
     display: flex;
     align-items: center;
