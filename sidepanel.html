@@ -16,8 +16,12 @@
                     <button id="layout-3x3" class="btn-layout">3&times;3</button>
                 </div>
             </div>
-            <button id="btn-clear-all" class="btn-clear">清空</button>
+            <div class="topbar-right">
+                <button id="btn-save-group" class="btn-memory">&#35352;&#24698;</button>
+                <button id="btn-clear-all" class="btn-clear">&#28165;&#31354;</button>
+            </div>
         </header>
+        <div id="groups-bar" class="groups-bar" style="display:none"></div>
 
         <div id="video-grid" class="video-grid count-4">
 
@@ -27,11 +31,11 @@
                     <iframe id="screen1" src="about:blank" allow="autoplay; encrypted-media; fullscreen"></iframe>
                     <div class="screen-placeholder" id="placeholder1">
                         <button class="plus-circle" data-frame="1">+</button>
-                        <span class="cell-label">格 1</span>
+                        <span class="cell-label">&#26684; 1</span>
                     </div>
                     <div class="input-overlay" id="input-overlay1">
                         <div class="input-box">
-                            <input type="text" id="url1" class="url-input" placeholder="貼上 URL 或影片 ID">
+                            <input type="text" id="url1" class="url-input" placeholder="&#36149;&#19978; URL &#25110;&#24433;&#29255; ID">
                             <div class="overlay-btns">
                                 <button class="btn-go load-btn" data-frame="1">播放</button>
                                 <button class="btn-overlay-cancel cancel-btn" data-frame="1">取消</button>
@@ -39,6 +43,8 @@
                         </div>
                     </div>
                     <div class="hover-controls">
+                        <button class="btn-ctrl play-btn" data-frame="1" title="Play">&#9654;</button>
+                        <button class="btn-ctrl pause-btn" data-frame="1" title="Pause">&#9646;&#9646;</button>
                         <button class="btn-ctrl reload-btn" data-frame="1" title="Reload">&#8635;</button>
                         <button class="btn-ctrl stop-btn" data-frame="1" title="Stop">&#9632;</button>
                         <button class="btn-ctrl skip-btn" data-frame="1" title="Next">&#9197;</button>
@@ -52,11 +58,11 @@
                     <iframe id="screen2" src="about:blank" allow="autoplay; encrypted-media; fullscreen"></iframe>
                     <div class="screen-placeholder" id="placeholder2">
                         <button class="plus-circle" data-frame="2">+</button>
-                        <span class="cell-label">格 2</span>
+                        <span class="cell-label">&#26684; 2</span>
                     </div>
                     <div class="input-overlay" id="input-overlay2">
                         <div class="input-box">
-                            <input type="text" id="url2" class="url-input" placeholder="貼上 URL 或影片 ID">
+                            <input type="text" id="url2" class="url-input" placeholder="&#36149;&#19978; URL &#25110;&#24433;&#29255; ID">
                             <div class="overlay-btns">
                                 <button class="btn-go load-btn" data-frame="2">播放</button>
                                 <button class="btn-overlay-cancel cancel-btn" data-frame="2">取消</button>
@@ -64,6 +70,8 @@
                         </div>
                     </div>
                     <div class="hover-controls">
+                        <button class="btn-ctrl play-btn" data-frame="2" title="Play">&#9654;</button>
+                        <button class="btn-ctrl pause-btn" data-frame="2" title="Pause">&#9646;&#9646;</button>
                         <button class="btn-ctrl reload-btn" data-frame="2" title="Reload">&#8635;</button>
                         <button class="btn-ctrl stop-btn" data-frame="2" title="Stop">&#9632;</button>
                         <button class="btn-ctrl skip-btn" data-frame="2" title="Next">&#9197;</button>
@@ -77,11 +85,11 @@
                     <iframe id="screen3" src="about:blank" allow="autoplay; encrypted-media; fullscreen"></iframe>
                     <div class="screen-placeholder" id="placeholder3">
                         <button class="plus-circle" data-frame="3">+</button>
-                        <span class="cell-label">格 3</span>
+                        <span class="cell-label">&#26684; 3</span>
                     </div>
                     <div class="input-overlay" id="input-overlay3">
                         <div class="input-box">
-                            <input type="text" id="url3" class="url-input" placeholder="貼上 URL 或影片 ID">
+                            <input type="text" id="url3" class="url-input" placeholder="&#36149;&#19978; URL &#25110;&#24433;&#29255; ID">
                             <div class="overlay-btns">
                                 <button class="btn-go load-btn" data-frame="3">播放</button>
                                 <button class="btn-overlay-cancel cancel-btn" data-frame="3">取消</button>
@@ -89,6 +97,8 @@
                         </div>
                     </div>
                     <div class="hover-controls">
+                        <button class="btn-ctrl play-btn" data-frame="3" title="Play">&#9654;</button>
+                        <button class="btn-ctrl pause-btn" data-frame="3" title="Pause">&#9646;&#9646;</button>
                         <button class="btn-ctrl reload-btn" data-frame="3" title="Reload">&#8635;</button>
                         <button class="btn-ctrl stop-btn" data-frame="3" title="Stop">&#9632;</button>
                         <button class="btn-ctrl skip-btn" data-frame="3" title="Next">&#9197;</button>
@@ -102,11 +112,11 @@
                     <iframe id="screen4" src="about:blank" allow="autoplay; encrypted-media; fullscreen"></iframe>
                     <div class="screen-placeholder" id="placeholder4">
                         <button class="plus-circle" data-frame="4">+</button>
-                        <span class="cell-label">格 4</span>
+                        <span class="cell-label">&#26684; 4</span>
                     </div>
                     <div class="input-overlay" id="input-overlay4">
                         <div class="input-box">
-                            <input type="text" id="url4" class="url-input" placeholder="貼上 URL 或影片 ID">
+                            <input type="text" id="url4" class="url-input" placeholder="&#36149;&#19978; URL &#25110;&#24433;&#29255; ID">
                             <div class="overlay-btns">
                                 <button class="btn-go load-btn" data-frame="4">播放</button>
                                 <button class="btn-overlay-cancel cancel-btn" data-frame="4">取消</button>
@@ -114,6 +124,8 @@
                         </div>
                     </div>
                     <div class="hover-controls">
+                        <button class="btn-ctrl play-btn" data-frame="4" title="Play">&#9654;</button>
+                        <button class="btn-ctrl pause-btn" data-frame="4" title="Pause">&#9646;&#9646;</button>
                         <button class="btn-ctrl reload-btn" data-frame="4" title="Reload">&#8635;</button>
                         <button class="btn-ctrl stop-btn" data-frame="4" title="Stop">&#9632;</button>
                         <button class="btn-ctrl skip-btn" data-frame="4" title="Next">&#9197;</button>
@@ -127,11 +139,11 @@
                     <iframe id="screen5" src="about:blank" allow="autoplay; encrypted-media; fullscreen"></iframe>
                     <div class="screen-placeholder" id="placeholder5">
                         <button class="plus-circle" data-frame="5">+</button>
-                        <span class="cell-label">格 5</span>
+                        <span class="cell-label">&#26684; 5</span>
                     </div>
                     <div class="input-overlay" id="input-overlay5">
                         <div class="input-box">
-                            <input type="text" id="url5" class="url-input" placeholder="貼上 URL 或影片 ID">
+                            <input type="text" id="url5" class="url-input" placeholder="&#36149;&#19978; URL &#25110;&#24433;&#29255; ID">
                             <div class="overlay-btns">
                                 <button class="btn-go load-btn" data-frame="5">播放</button>
                                 <button class="btn-overlay-cancel cancel-btn" data-frame="5">取消</button>
@@ -139,6 +151,8 @@
                         </div>
                     </div>
                     <div class="hover-controls">
+                        <button class="btn-ctrl play-btn" data-frame="5" title="Play">&#9654;</button>
+                        <button class="btn-ctrl pause-btn" data-frame="5" title="Pause">&#9646;&#9646;</button>
                         <button class="btn-ctrl reload-btn" data-frame="5" title="Reload">&#8635;</button>
                         <button class="btn-ctrl stop-btn" data-frame="5" title="Stop">&#9632;</button>
                         <button class="btn-ctrl skip-btn" data-frame="5" title="Next">&#9197;</button>
@@ -152,11 +166,11 @@
                     <iframe id="screen6" src="about:blank" allow="autoplay; encrypted-media; fullscreen"></iframe>
                     <div class="screen-placeholder" id="placeholder6">
                         <button class="plus-circle" data-frame="6">+</button>
-                        <span class="cell-label">格 6</span>
+                        <span class="cell-label">&#26684; 6</span>
                     </div>
                     <div class="input-overlay" id="input-overlay6">
                         <div class="input-box">
-                            <input type="text" id="url6" class="url-input" placeholder="貼上 URL 或影片 ID">
+                            <input type="text" id="url6" class="url-input" placeholder="&#36149;&#19978; URL &#25110;&#24433;&#29255; ID">
                             <div class="overlay-btns">
                                 <button class="btn-go load-btn" data-frame="6">播放</button>
                                 <button class="btn-overlay-cancel cancel-btn" data-frame="6">取消</button>
@@ -164,6 +178,8 @@
                         </div>
                     </div>
                     <div class="hover-controls">
+                        <button class="btn-ctrl play-btn" data-frame="6" title="Play">&#9654;</button>
+                        <button class="btn-ctrl pause-btn" data-frame="6" title="Pause">&#9646;&#9646;</button>
                         <button class="btn-ctrl reload-btn" data-frame="6" title="Reload">&#8635;</button>
                         <button class="btn-ctrl stop-btn" data-frame="6" title="Stop">&#9632;</button>
                         <button class="btn-ctrl skip-btn" data-frame="6" title="Next">&#9197;</button>
@@ -177,11 +193,11 @@
                     <iframe id="screen7" src="about:blank" allow="autoplay; encrypted-media; fullscreen"></iframe>
                     <div class="screen-placeholder" id="placeholder7">
                         <button class="plus-circle" data-frame="7">+</button>
-                        <span class="cell-label">格 7</span>
+                        <span class="cell-label">&#26684; 7</span>
                     </div>
                     <div class="input-overlay" id="input-overlay7">
                         <div class="input-box">
-                            <input type="text" id="url7" class="url-input" placeholder="貼上 URL 或影片 ID">
+                            <input type="text" id="url7" class="url-input" placeholder="&#36149;&#19978; URL &#25110;&#24433;&#29255; ID">
                             <div class="overlay-btns">
                                 <button class="btn-go load-btn" data-frame="7">播放</button>
                                 <button class="btn-overlay-cancel cancel-btn" data-frame="7">取消</button>
@@ -189,6 +205,8 @@
                         </div>
                     </div>
                     <div class="hover-controls">
+                        <button class="btn-ctrl play-btn" data-frame="7" title="Play">&#9654;</button>
+                        <button class="btn-ctrl pause-btn" data-frame="7" title="Pause">&#9646;&#9646;</button>
                         <button class="btn-ctrl reload-btn" data-frame="7" title="Reload">&#8635;</button>
                         <button class="btn-ctrl stop-btn" data-frame="7" title="Stop">&#9632;</button>
                         <button class="btn-ctrl skip-btn" data-frame="7" title="Next">&#9197;</button>
@@ -202,11 +220,11 @@
                     <iframe id="screen8" src="about:blank" allow="autoplay; encrypted-media; fullscreen"></iframe>
                     <div class="screen-placeholder" id="placeholder8">
                         <button class="plus-circle" data-frame="8">+</button>
-                        <span class="cell-label">格 8</span>
+                        <span class="cell-label">&#26684; 8</span>
                     </div>
                     <div class="input-overlay" id="input-overlay8">
                         <div class="input-box">
-                            <input type="text" id="url8" class="url-input" placeholder="貼上 URL 或影片 ID">
+                            <input type="text" id="url8" class="url-input" placeholder="&#36149;&#19978; URL &#25110;&#24433;&#29255; ID">
                             <div class="overlay-btns">
                                 <button class="btn-go load-btn" data-frame="8">播放</button>
                                 <button class="btn-overlay-cancel cancel-btn" data-frame="8">取消</button>
@@ -214,6 +232,8 @@
                         </div>
                     </div>
                     <div class="hover-controls">
+                        <button class="btn-ctrl play-btn" data-frame="8" title="Play">&#9654;</button>
+                        <button class="btn-ctrl pause-btn" data-frame="8" title="Pause">&#9646;&#9646;</button>
                         <button class="btn-ctrl reload-btn" data-frame="8" title="Reload">&#8635;</button>
                         <button class="btn-ctrl stop-btn" data-frame="8" title="Stop">&#9632;</button>
                         <button class="btn-ctrl skip-btn" data-frame="8" title="Next">&#9197;</button>
@@ -227,11 +247,11 @@
                     <iframe id="screen9" src="about:blank" allow="autoplay; encrypted-media; fullscreen"></iframe>
                     <div class="screen-placeholder" id="placeholder9">
                         <button class="plus-circle" data-frame="9">+</button>
-                        <span class="cell-label">格 9</span>
+                        <span class="cell-label">&#26684; 9</span>
                     </div>
                     <div class="input-overlay" id="input-overlay9">
                         <div class="input-box">
-                            <input type="text" id="url9" class="url-input" placeholder="貼上 URL 或影片 ID">
+                            <input type="text" id="url9" class="url-input" placeholder="&#36149;&#19978; URL &#25110;&#24433;&#29255; ID">
                             <div class="overlay-btns">
                                 <button class="btn-go load-btn" data-frame="9">播放</button>
                                 <button class="btn-overlay-cancel cancel-btn" data-frame="9">取消</button>
@@ -239,6 +259,8 @@
                         </div>
                     </div>
                     <div class="hover-controls">
+                        <button class="btn-ctrl play-btn" data-frame="9" title="Play">&#9654;</button>
+                        <button class="btn-ctrl pause-btn" data-frame="9" title="Pause">&#9646;&#9646;</button>
                         <button class="btn-ctrl reload-btn" data-frame="9" title="Reload">&#8635;</button>
                         <button class="btn-ctrl stop-btn" data-frame="9" title="Stop">&#9632;</button>
                         <button class="btn-ctrl skip-btn" data-frame="9" title="Next">&#9197;</button>

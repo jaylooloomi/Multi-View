@@ -59,8 +59,8 @@ window.convertToEmbedUrl = (rawText, frameId) => {
         urlObj.searchParams.set('subscreen', '1');
         urlObj.searchParams.set('enablejsapi', '1'); // API有効化
         urlObj.searchParams.set('origin', window.location.origin); // クロスオリジンセキュリティ対策
-        urlObj.searchParams.set('autoplay', '1'); // 自動再生ON
-        urlObj.searchParams.set('mute', '1'); // 自動再生ポリシー対策 (ミュートなら再生されやすい)
+        urlObj.searchParams.set('autoplay', '0');
+        urlObj.searchParams.set('mute', '0');
         if (frameId) {
             urlObj.searchParams.set('frameId', frameId);
         }

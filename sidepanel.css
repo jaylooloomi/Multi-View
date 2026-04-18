@@ -89,6 +89,28 @@ body {
     color: #fff;
 }
 
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-memory {
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: #a78bfa;
+    border-radius: var(--r);
+    padding: 3px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-memory:hover {
+    background: rgba(139, 92, 246, 0.28);
+    border-color: rgba(139, 92, 246, 0.5);
+}
+
 .btn-clear {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -103,6 +125,64 @@ body {
 .btn-clear:hover {
     border-color: var(--accent);
     color: var(--accent);
+}
+
+/* ── Groups Bar ──────────────────────────── */
+.groups-bar {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: var(--topbar-bg);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.group-chip {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+}
+
+.group-chip:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+}
+
+.group-chip-load {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 11px;
+    padding: 3px 8px 3px 11px;
+    cursor: pointer;
+    transition: color 0.15s;
+    white-space: nowrap;
+}
+
+.group-chip-load:hover {
+    color: #a78bfa;
+}
+
+.group-chip-del {
+    background: none;
+    border: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 2px 7px;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.15s, background 0.15s;
+}
+
+.group-chip-del:hover {
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.12);
 }
 
 /* ── Video Grid ──────────────────────────── */
@@ -301,6 +381,18 @@ body {
     justify-content: center;
     transition: background 0.15s;
 }
+
+.play-btn {
+    background: rgba(30, 140, 60, 0.7);
+    color: #6ee09a;
+}
+.play-btn:hover { background: rgba(40, 180, 80, 0.85); }
+
+.pause-btn {
+    background: rgba(180, 130, 20, 0.6);
+    color: #fcd34d;
+}
+.pause-btn:hover { background: rgba(220, 160, 30, 0.8); }
 
 .reload-btn {
     background: rgba(30, 80, 160, 0.7);

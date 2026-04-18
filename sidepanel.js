@@ -4,6 +4,7 @@ let videoList = [];
 let nextGlobalIndex = 0; // 次に割り当てるべきリストのインデックス
 let screenCount = 4;
 let isAutoPlay = true;
+let savedGroups = [];
 
 // 各フレームの状態管理
 const frameStates = {
@@ -39,6 +40,9 @@ function setupEventListeners() {
     // 清空ボタン
     document.getElementById('btn-clear-all').addEventListener('click', stopAllVideos);
 
+    // 記憶ボタン
+    document.getElementById('btn-save-group').addEventListener('click', saveGroup);
+
     // 各フレームのコントロール
     for (let i = 1; i <= 9; i++) {
         // + ボタン: URLオーバーレイを表示
@@ -61,6 +65,14 @@ function setupEventListeners() {
         // Nextボタン
         document.querySelector(`.skip-btn[data-frame="${i}"]`).addEventListener('click', () => {
             playNextVideo(i);
+        });
+        // Playボタン
+        document.querySelector(`.play-btn[data-frame="${i}"]`).addEventListener('click', () => {
+            sendMessageToFrame(i, 'playVideo');
+        });
+        // Pauseボタン
+        document.querySelector(`.pause-btn[data-frame="${i}"]`).addEventListener('click', () => {
+            sendMessageToFrame(i, 'pauseVideo');
         });
         // Reloadボタン
         const reloadBtn = document.querySelector(`.reload-btn[data-frame="${i}"]`);
@@ -92,18 +104,19 @@ function setupEventListeners() {
 }
 
 function loadSettings() {
-    chrome.storage.local.get(['videoList', 'nextGlobalIndex', 'screenCount'], (data) => {
+    chrome.storage.local.get(['videoList', 'nextGlobalIndex', 'screenCount', 'savedGroups'], (data) => {
         if (data.videoList) videoList = data.videoList;
         if (data.nextGlobalIndex !== undefined) nextGlobalIndex = data.nextGlobalIndex;
         if (data.screenCount) screenCount = data.screenCount;
+        if (data.savedGroups) savedGroups = data.savedGroups;
 
-        // レイアウトボタンのアクティブ状態を復元
         const is3x3 = screenCount === 9;
         document.getElementById('layout-2x2').classList.toggle('active', !is3x3);
         document.getElementById('layout-3x3').classList.toggle('active', is3x3);
 
         setLayout(screenCount);
         renderVideoList();
+        renderGroups();
     });
 }
 
@@ -113,6 +126,97 @@ function saveSettings() {
         nextGlobalIndex: nextGlobalIndex,
         screenCount: screenCount
     });
+}
+
+// ── 記憶グループ ──────────────────────────────
+
+function saveGroup() {
+    if (savedGroups.length >= 10) {
+        alert('最多只能儲存 10 組記憶，請先刪除一組');
+        return;
+    }
+
+    const urls = [];
+    for (let i = 1; i <= screenCount; i++) {
+        urls.push(document.getElementById(`url${i}`)?.value || '');
+    }
+
+    if (urls.every(u => !u)) {
+        alert('目前沒有影片可以記憶');
+        return;
+    }
+
+    const group = {
+        id: Date.now(),
+        name: `群組 ${savedGroups.length + 1}`,
+        urls: urls,
+        screenCount: screenCount
+    };
+
+    savedGroups.push(group);
+    chrome.storage.local.set({ savedGroups });
+    renderGroups();
+}
+
+function loadGroup(id) {
+    const group = savedGroups.find(g => g.id === id);
+    if (!group) return;
+
+    stopAllVideos();
+
+    // レイアウトが違う場合は切り替え
+    if (group.screenCount !== screenCount) {
+        const is3x3 = group.screenCount === 9;
+        setLayout(group.screenCount);
+        document.getElementById('layout-2x2').classList.toggle('active', !is3x3);
+        document.getElementById('layout-3x3').classList.toggle('active', is3x3);
+    }
+
+    setTimeout(() => {
+        group.urls.forEach((url, idx) => {
+            const frameId = idx + 1;
+            if (url) loadUrlToFrame(frameId, url);
+        });
+    }, 300);
+}
+
+function deleteGroup(id) {
+    savedGroups = savedGroups.filter(g => g.id !== id);
+    // 名前を振り直す
+    savedGroups.forEach((g, idx) => { g.name = `群組 ${idx + 1}`; });
+    chrome.storage.local.set({ savedGroups });
+    renderGroups();
+}
+
+function renderGroups() {
+    const bar = document.getElementById('groups-bar');
+    bar.innerHTML = '';
+
+    savedGroups.forEach(group => {
+        const chip = document.createElement('div');
+        chip.className = 'group-chip';
+
+        const loadBtn = document.createElement('button');
+        loadBtn.className = 'group-chip-load';
+        loadBtn.textContent = group.name;
+        loadBtn.title = group.urls.filter(u => u).join('\n');
+        loadBtn.addEventListener('click', () => loadGroup(group.id));
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'group-chip-del';
+        delBtn.textContent = '×';
+        delBtn.title = '刪除';
+        delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteGroup(group.id);
+        });
+
+        chip.appendChild(loadBtn);
+        chip.appendChild(delBtn);
+        bar.appendChild(chip);
+    });
+
+    bar.style.display = savedGroups.length > 0 ? 'flex' : 'none';
 }
 
 // ── Placeholder / Overlay helpers ─────────────────────
@@ -375,9 +479,6 @@ function processLoadQueue() {
                 setTimeout(() => {
                     console.log(`[Queue] Frame ${frameId} sequence done. Next?`);
 
-                    // 【重要】再生準備完了後に「再生しろ」とコマンドを叩く (自動再生がコケた場合の救済)
-                    sendMessageToFrame(frameId, 'playVideo');
-
                     frameStates[frameId].isProcessing = false;
                     isGlobalLoading = false;
 
@@ -477,6 +578,7 @@ function loadUrlToFrame(frameId, rawUrl) {
     const finalUrl = window.convertToEmbedUrl(rawUrl, frameId);
     if (finalUrl) {
         document.getElementById(`screen${frameId}`).src = finalUrl;
+        document.getElementById(`url${frameId}`).value = rawUrl;
         frameStates[frameId] = { videoId: null, listIndex: -1 };
         hidePlaceholder(frameId);
         hideInputOverlay(frameId);

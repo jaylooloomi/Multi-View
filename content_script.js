@@ -212,52 +212,74 @@ if (isSubscreen) {
                     });
                 });
 
-                // 自動再生トライ
-                video.play().catch(e => console.log("Autoplay blocked:", e));
             }
         };
 
         setInterval(setupVideoListener, 1000); // videoタグが生成されるのを待つ
+    }
 
-        // 親(sidepanel)からの制御メッセージを受け取る
-        window.addEventListener("message", (event) => {
-            // セキュリティチェックが必要だが、Extensionのiframe内なので一旦許可
-            try {
-                const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+    // 全プラットフォーム共通: video ended 監視
+    if (!location.hostname.includes("youtube.com")) {
+        const setupVideoListenerGeneric = () => {
+            const video = document.querySelector('video');
+            if (video && !video.dataset.listening) {
+                video.dataset.listening = "true";
+                video.addEventListener("ended", () => {
+                    console.log(`[MultiPlaylist] EVENT: Video ended in Frame ${frameId}`);
+                    chrome.runtime.sendMessage({
+                        action: "videoEnded",
+                        frameId: frameId,
+                        videoId: params.get("v")
+                    });
+                });
+            }
+        };
+        setInterval(setupVideoListenerGeneric, 1000);
+    }
 
-                // 【NEW】自分宛てのメッセージか確認 (ブロードキャスト防止)
-                if (data.targetFrameId && String(data.targetFrameId) !== String(frameId)) {
-                    return; // 宛先が違うので無視
-                }
+    // 親(sidepanel)からの制御メッセージを受け取る (全プラットフォーム共通)
+    window.addEventListener("message", (event) => {
+        try {
+            const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
 
-                if (data.event === 'command' && data.func === 'playVideo') {
-                    console.log(`[Content Frame ${frameId}] Received playVideo command.`);
-                    const video = document.querySelector('video');
-                    if (video) video.play().catch(e => console.error("Play failed:", e));
+            if (data.targetFrameId && String(data.targetFrameId) !== String(frameId)) {
+                return;
+            }
+
+            if (data.event === 'command' && data.func === 'playVideo') {
+                console.log(`[Content Frame ${frameId}] Received playVideo command.`);
+                const video = document.querySelector('video');
+                if (video) {
+                    video.play().catch(() => {
+                        // autoplay policy blocked — click the platform's own play button
+                        const platformPlayBtn = document.querySelector(
+                            '.mgp_playIcon, .play-button, [class*="playIcon"], [class*="play_button"], .ytp-play-button'
+                        );
+                        if (platformPlayBtn) platformPlayBtn.click();
+                    });
                 }
-                if (data.event === 'command' && data.func === 'pauseVideo') {
-                    const video = document.querySelector('video');
-                    if (video) video.pause();
-                }
-                // 【NEW】リソース解放用コマンド
-                if (data.event === 'command' && data.func === 'releaseVideo') {
-                    console.log(`[Content Frame ${frameId}] Releasing video resources...`);
-                    const video = document.querySelector('video');
-                    if (video) {
-                        try {
-                            video.pause();
-                            video.removeAttribute('src'); // src属性を削除
-                            video.load(); // リセット確定
-                        } catch (err) {
-                            console.error("Error releasing video:", err);
-                        }
+            }
+            if (data.event === 'command' && data.func === 'pauseVideo') {
+                const video = document.querySelector('video');
+                if (video) video.pause();
+            }
+            if (data.event === 'command' && data.func === 'releaseVideo') {
+                console.log(`[Content Frame ${frameId}] Releasing video resources...`);
+                const video = document.querySelector('video');
+                if (video) {
+                    try {
+                        video.pause();
+                        video.removeAttribute('src');
+                        video.load();
+                    } catch (err) {
+                        console.error("Error releasing video:", err);
                     }
                 }
-            } catch (e) {
-                // 無視
             }
-        });
-    }
+        } catch (e) {
+            // 無視
+        }
+    });
 }
 
 // --- 3. メッセージハンドラ (リスト取得用) ---
