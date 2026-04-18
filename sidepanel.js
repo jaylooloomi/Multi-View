@@ -1,4 +1,19 @@
-// YouTube Multi Auto Playlist - Side Panel Logic
+// Multi-View - Side Panel Logic
+
+// ── Toast notification ────────────────────────────────────────────────────────
+let _toastTimer = null;
+function showToast(msg, type = 'info') {
+    let el = document.getElementById('mv-toast');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'mv-toast';
+        document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.className = 'mv-toast mv-toast-' + type + ' mv-toast-show';
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => el.classList.remove('mv-toast-show'), 2000);
+}
 
 let videoList = [];
 let nextGlobalIndex = 0; // The list index to be assigned next
@@ -83,20 +98,21 @@ function setupEventListeners() {
             if (val) urls.push(val);
         }
         if (urls.length === 0) {
-            alert('目前沒有影片可以複製');
+            showToast('目前沒有影片可複製', 'warn');
             return;
         }
         try {
             await navigator.clipboard.writeText(urls.join('\n'));
+            showToast(`已複製 ${urls.length} 個網址`, 'ok');
         } catch (e) {
-            alert('無法寫入剪貼簿');
+            showToast('無法寫入剪貼簿', 'error');
         }
     });
 
     // Quick save button: update the currently loaded group
     document.getElementById('btn-save-quick').addEventListener('click', () => {
         if (!currentGroupId) {
-            alert('請先載入一個群組，再按儲存');
+            showToast('請先載入一個群組，再按儲存', 'warn');
             return;
         }
         const group = savedGroups.find(g => g.id === currentGroupId);
@@ -107,7 +123,7 @@ function setupEventListeners() {
             urls.push(document.getElementById(`url${i}`)?.value || '');
         }
         if (urls.every(u => !u)) {
-            alert('目前沒有影片可以儲存');
+            showToast('目前沒有影片可儲存', 'warn');
             return;
         }
 
@@ -115,6 +131,7 @@ function setupEventListeners() {
         group.screenCount = screenCount;
         chrome.storage.local.set({ savedGroups });
         renderGroups();
+        showToast(`已儲存「${group.name}」`, 'ok');
     });
 
     // Compact button: move all loaded URLs forward to fill empty frames
@@ -126,33 +143,38 @@ function setupEventListeners() {
 
         // Check if there are any gaps (empty frame followed by a filled frame)
         const hasGap = slots.some((val, idx) => !val && slots.slice(idx + 1).some(v => v));
-        if (!hasGap) return;
+        if (!hasGap) { showToast('沒有空隙，不需要重排', 'info'); return; }
 
         const urls = slots.filter(v => v);
         stopAllVideos();
         setTimeout(() => {
             urls.forEach((url, idx) => loadUrlToFrame(idx + 1, url));
+            showToast('已重排影片框', 'ok');
         }, 300);
     });
 
     // Pause all button
     document.getElementById('btn-pause-all').addEventListener('click', () => {
         for (let i = 1; i <= screenCount; i++) sendMessageToFrame(i, 'pauseVideo');
+        showToast('已暫停所有影片', 'ok');
     });
 
     // Resume all button
     document.getElementById('btn-resume-all').addEventListener('click', () => {
         for (let i = 1; i <= screenCount; i++) sendMessageToFrame(i, 'playVideo');
+        showToast('已繼續播放所有影片', 'ok');
     });
 
     // Mute all button
     document.getElementById('btn-mute-all').addEventListener('click', () => {
         for (let i = 1; i <= screenCount; i++) sendMessageToFrame(i, 'muteVideo');
+        showToast('已靜音所有影片', 'ok');
     });
 
     // Unmute all button
     document.getElementById('btn-unmute-all').addEventListener('click', () => {
         for (let i = 1; i <= screenCount; i++) sendMessageToFrame(i, 'unmuteVideo');
+        showToast('已取消靜音', 'ok');
     });
 
     // Paste button
@@ -164,7 +186,7 @@ function setupEventListeners() {
                 .filter(u => u && !u.startsWith('#') && u.startsWith('http'));
 
             if (urls.length === 0) {
-                alert('剪貼簿中沒有找到有效的網址');
+                showToast('剪貼簿中沒有有效的網址', 'warn');
                 return;
             }
 
@@ -176,17 +198,19 @@ function setupEventListeners() {
             }
 
             if (emptyFrames.length === 0) {
-                // All frames occupied — do nothing
+                showToast('所有影片框已有內容', 'warn');
                 return;
             } else {
                 // Fill empty frames sequentially
+                let filled = 0;
                 urls.forEach((url, idx) => {
                     const frameId = emptyFrames[idx];
-                    if (frameId) loadUrlToFrame(frameId, url);
+                    if (frameId) { loadUrlToFrame(frameId, url); filled++; }
                 });
+                showToast(`已貼上 ${filled} 個網址`, 'ok');
             }
         } catch (e) {
-            alert('無法讀取剪貼簿，請確認瀏覽器已授權');
+            showToast('無法讀取剪貼簿，請確認瀏覽器已授權', 'error');
         }
     });
 
