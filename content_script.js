@@ -218,7 +218,7 @@ if (isSubscreen) {
         setInterval(setupVideoListener, 1000); // videoタグが生成されるのを待つ
     }
 
-    // 全プラットフォーム共通: video ended 監視
+    // 全プラットフォーム共通: video ended 監視 + 遅延ミュート自動再生
     if (!location.hostname.includes("youtube.com")) {
         const setupVideoListenerGeneric = () => {
             const video = document.querySelector('video');
@@ -232,6 +232,7 @@ if (isSubscreen) {
                         videoId: params.get("v")
                     });
                 });
+
             }
         };
         setInterval(setupVideoListenerGeneric, 1000);
@@ -249,15 +250,16 @@ if (isSubscreen) {
             if (data.event === 'command' && data.func === 'playVideo') {
                 console.log(`[Content Frame ${frameId}] Received playVideo command.`);
                 const video = document.querySelector('video');
-                if (video) {
-                    video.play().catch(() => {
-                        // autoplay policy blocked — click the platform's own play button
-                        const platformPlayBtn = document.querySelector(
-                            '.mgp_playIcon, .play-button, [class*="playIcon"], [class*="play_button"], .ytp-play-button'
-                        );
-                        if (platformPlayBtn) platformPlayBtn.click();
-                    });
+                if (!video) return;
+
+                // 一度も再生されていない → プラットフォームのボタンをクリック
+                if (video.played.length === 0) {
+                    const platformBtn = document.querySelector('.mgp_playIcon');
+                    if (platformBtn) { platformBtn.click(); return; }
                 }
+
+                // 再生済み（一時停止中）→ video.play() で制御可能
+                video.play().catch(e => console.error("Play failed:", e));
             }
             if (data.event === 'command' && data.func === 'pauseVideo') {
                 const video = document.querySelector('video');
