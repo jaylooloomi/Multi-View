@@ -5,6 +5,8 @@ let nextGlobalIndex = 0; // The list index to be assigned next
 let screenCount = 4;
 let isAutoPlay = true;
 let savedGroups = [];
+let dragSourceFrameId = null;
+let currentGroupId = null; // Track which group is currently loaded
 
 // State management for each frame
 const frameStates = {
@@ -23,17 +25,32 @@ const frameStates = {
     13: { videoId: null, listIndex: -1, isProcessing: false },
     14: { videoId: null, listIndex: -1, isProcessing: false },
     15: { videoId: null, listIndex: -1, isProcessing: false },
-    16: { videoId: null, listIndex: -1, isProcessing: false }
+    16: { videoId: null, listIndex: -1, isProcessing: false },
+    17: { videoId: null, listIndex: -1, isProcessing: false },
+    18: { videoId: null, listIndex: -1, isProcessing: false },
+    19: { videoId: null, listIndex: -1, isProcessing: false },
+    20: { videoId: null, listIndex: -1, isProcessing: false },
+    21: { videoId: null, listIndex: -1, isProcessing: false },
+    22: { videoId: null, listIndex: -1, isProcessing: false },
+    23: { videoId: null, listIndex: -1, isProcessing: false },
+    24: { videoId: null, listIndex: -1, isProcessing: false },
+    25: { videoId: null, listIndex: -1, isProcessing: false }
 };
+
+function resetGlobalControls() {
+    // Nothing to reset — mute/pause are now independent one-shot buttons
+}
 
 function autoSelectLayout(urlCount) {
     let count = 4;
-    if (urlCount > 9) count = 16;
+    if (urlCount > 16) count = 25;
+    else if (urlCount > 9) count = 16;
     else if (urlCount > 4) count = 9;
     setLayout(count);
     document.getElementById('layout-2x2').classList.toggle('active', count === 4);
     document.getElementById('layout-3x3').classList.toggle('active', count === 9);
     document.getElementById('layout-4x4').classList.toggle('active', count === 16);
+    document.getElementById('layout-5x5').classList.toggle('active', count === 25);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -48,18 +65,29 @@ function setupEventListeners() {
         document.getElementById('layout-2x2').classList.add('active');
         document.getElementById('layout-3x3').classList.remove('active');
         document.getElementById('layout-4x4').classList.remove('active');
+        resetGlobalControls();
     });
     document.getElementById('layout-3x3').addEventListener('click', () => {
         setLayout(9);
         document.getElementById('layout-3x3').classList.add('active');
         document.getElementById('layout-2x2').classList.remove('active');
         document.getElementById('layout-4x4').classList.remove('active');
+        resetGlobalControls();
     });
     document.getElementById('layout-4x4').addEventListener('click', () => {
         setLayout(16);
         document.getElementById('layout-4x4').classList.add('active');
         document.getElementById('layout-2x2').classList.remove('active');
         document.getElementById('layout-3x3').classList.remove('active');
+        resetGlobalControls();
+    });
+    document.getElementById('layout-5x5').addEventListener('click', () => {
+        setLayout(25);
+        document.getElementById('layout-5x5').classList.add('active');
+        document.getElementById('layout-2x2').classList.remove('active');
+        document.getElementById('layout-3x3').classList.remove('active');
+        document.getElementById('layout-4x4').classList.remove('active');
+        resetGlobalControls();
     });
 
     // Clear all button
@@ -81,13 +109,71 @@ function setupEventListeners() {
         }
         try {
             await navigator.clipboard.writeText(urls.join('\n'));
-            const btn = document.getElementById('btn-copy-urls');
-            const orig = btn.textContent;
-            btn.textContent = '已複製!';
-            setTimeout(() => { btn.textContent = orig; }, 1500);
         } catch (e) {
             alert('無法寫入剪貼簿');
         }
+    });
+
+    // Quick save button: update the currently loaded group
+    document.getElementById('btn-save-quick').addEventListener('click', () => {
+        if (!currentGroupId) {
+            alert('請先載入一個群組，再按儲存');
+            return;
+        }
+        const group = savedGroups.find(g => g.id === currentGroupId);
+        if (!group) return;
+
+        const urls = [];
+        for (let i = 1; i <= screenCount; i++) {
+            urls.push(document.getElementById(`url${i}`)?.value || '');
+        }
+        if (urls.every(u => !u)) {
+            alert('目前沒有影片可以儲存');
+            return;
+        }
+
+        group.urls = urls;
+        group.screenCount = screenCount;
+        chrome.storage.local.set({ savedGroups });
+        renderGroups();
+    });
+
+    // Compact button: move all loaded URLs forward to fill empty frames
+    document.getElementById('btn-compact').addEventListener('click', () => {
+        const slots = [];
+        for (let i = 1; i <= screenCount; i++) {
+            slots.push(document.getElementById(`url${i}`)?.value || '');
+        }
+
+        // Check if there are any gaps (empty frame followed by a filled frame)
+        const hasGap = slots.some((val, idx) => !val && slots.slice(idx + 1).some(v => v));
+        if (!hasGap) return;
+
+        const urls = slots.filter(v => v);
+        stopAllVideos();
+        setTimeout(() => {
+            urls.forEach((url, idx) => loadUrlToFrame(idx + 1, url));
+        }, 300);
+    });
+
+    // Pause all button
+    document.getElementById('btn-pause-all').addEventListener('click', () => {
+        for (let i = 1; i <= screenCount; i++) sendMessageToFrame(i, 'pauseVideo');
+    });
+
+    // Resume all button
+    document.getElementById('btn-resume-all').addEventListener('click', () => {
+        for (let i = 1; i <= screenCount; i++) sendMessageToFrame(i, 'playVideo');
+    });
+
+    // Mute all button
+    document.getElementById('btn-mute-all').addEventListener('click', () => {
+        for (let i = 1; i <= screenCount; i++) sendMessageToFrame(i, 'muteVideo');
+    });
+
+    // Unmute all button
+    document.getElementById('btn-unmute-all').addEventListener('click', () => {
+        for (let i = 1; i <= screenCount; i++) sendMessageToFrame(i, 'unmuteVideo');
     });
 
     // Paste button
@@ -103,17 +189,34 @@ function setupEventListeners() {
                 return;
             }
 
-            urls.forEach((url, idx) => {
-                const frameId = idx + 1;
-                if (frameId <= screenCount) loadUrlToFrame(frameId, url);
-            });
+            // Find empty frames
+            const emptyFrames = [];
+            for (let i = 1; i <= screenCount; i++) {
+                const val = document.getElementById(`url${i}`)?.value || '';
+                if (!val) emptyFrames.push(i);
+            }
+
+            if (emptyFrames.length === 0) {
+                // All frames occupied — auto-expand layout and fill from frame 1
+                autoSelectLayout(urls.length);
+                urls.forEach((url, idx) => {
+                    const frameId = idx + 1;
+                    if (frameId <= screenCount) loadUrlToFrame(frameId, url);
+                });
+            } else {
+                // Fill empty frames sequentially
+                urls.forEach((url, idx) => {
+                    const frameId = emptyFrames[idx];
+                    if (frameId) loadUrlToFrame(frameId, url);
+                });
+            }
         } catch (e) {
             alert('無法讀取剪貼簿，請確認瀏覽器已授權');
         }
     });
 
     // Controls for each frame
-    for (let i = 1; i <= 16; i++) {
+    for (let i = 1; i <= 25; i++) {
         // + button: show URL overlay
         document.querySelector(`.plus-circle[data-frame="${i}"]`).addEventListener('click', () => {
             showInputOverlay(i);
@@ -155,23 +258,50 @@ function setupEventListeners() {
             stopFrame(i);
         });
 
-        // Drag & drop
+        // Drag & drop (internal frame-to-frame move + external URL drop)
         const card = document.getElementById(`wrapper${i}`);
+
+        card.addEventListener('dragstart', (e) => {
+            const url = document.getElementById(`url${i}`)?.value;
+            if (!url) { e.preventDefault(); return; }
+            dragSourceFrameId = i;
+            e.dataTransfer.effectAllowed = 'move';
+            card.style.opacity = '0.4';
+            // Disable pointer events on all iframes so drag events reach the cards
+            document.querySelectorAll('.screen-box iframe').forEach(f => f.style.pointerEvents = 'none');
+        });
+
+        card.addEventListener('dragend', () => {
+            card.style.opacity = '';
+            dragSourceFrameId = null;
+            document.querySelectorAll('.screen-box iframe').forEach(f => f.style.pointerEvents = '');
+        });
+
         card.addEventListener('dragover', (e) => {
             e.preventDefault();
             card.classList.add('drag-over');
         });
+
         card.addEventListener('dragleave', () => {
             card.classList.remove('drag-over');
         });
+
         card.addEventListener('drop', (e) => {
             e.preventDefault();
             card.classList.remove('drag-over');
 
-            // Retrieve multi-line URLs (text/uri-list may contain multiple URLs separated by newlines)
-            console.log('[Drop] types:', [...e.dataTransfer.types]);
-            console.log('[Drop] uri-list:', e.dataTransfer.getData('text/uri-list'));
-            console.log('[Drop] plain:', e.dataTransfer.getData('text/plain'));
+            // Internal: move from one frame to another
+            if (dragSourceFrameId !== null && dragSourceFrameId !== i) {
+                const sourceUrl = document.getElementById(`url${dragSourceFrameId}`)?.value;
+                if (sourceUrl) {
+                    loadUrlToFrame(i, sourceUrl);
+                    stopFrame(dragSourceFrameId);
+                }
+                dragSourceFrameId = null;
+                return;
+            }
+
+            // External: load URLs from drag data
             let raw = e.dataTransfer.getData('text/uri-list') ||
                       e.dataTransfer.getData('text/plain') || '';
 
@@ -181,19 +311,15 @@ function setupEventListeners() {
                 if (match) raw = match[1];
             }
 
-            // Build URL list, excluding comment lines starting with # and empty lines
             const urls = raw.split('\n')
                 .map(u => u.trim())
                 .filter(u => u && !u.startsWith('#'));
 
             if (urls.length === 0) return;
 
-            // Assign multiple URLs to frames sequentially starting from the dropped frame
             urls.forEach((url, offset) => {
                 const targetFrame = i + offset;
-                if (targetFrame <= screenCount) {
-                    loadUrlToFrame(targetFrame, url);
-                }
+                if (targetFrame <= screenCount) loadUrlToFrame(targetFrame, url);
             });
         });
     }
@@ -203,11 +329,28 @@ function setupEventListeners() {
         // Receive multiple URLs from the page and assign them to each frame
         if (request.action === "loadUrlsToPanel") {
             const urls = request.urls || [];
-            autoSelectLayout(urls.length);
-            urls.forEach((url, idx) => {
-                const frameId = idx + 1;
-                if (frameId <= screenCount) loadUrlToFrame(frameId, url);
-            });
+
+            // Find empty frames (no URL loaded)
+            const emptyFrames = [];
+            for (let i = 1; i <= screenCount; i++) {
+                const val = document.getElementById(`url${i}`)?.value || '';
+                if (!val) emptyFrames.push(i);
+            }
+
+            if (emptyFrames.length === 0) {
+                // All frames occupied — auto-expand layout and fill from frame 1
+                autoSelectLayout(urls.length);
+                urls.forEach((url, idx) => {
+                    const frameId = idx + 1;
+                    if (frameId <= screenCount) loadUrlToFrame(frameId, url);
+                });
+            } else {
+                // Fill empty frames sequentially
+                urls.forEach((url, idx) => {
+                    const frameId = emptyFrames[idx];
+                    if (frameId) loadUrlToFrame(frameId, url);
+                });
+            }
             return;
         }
         if (request.action === "videoEnded") {
@@ -234,6 +377,7 @@ function loadSettings() {
         document.getElementById('layout-2x2').classList.toggle('active', screenCount === 4);
         document.getElementById('layout-3x3').classList.toggle('active', screenCount === 9);
         document.getElementById('layout-4x4').classList.toggle('active', screenCount === 16);
+        document.getElementById('layout-5x5').classList.toggle('active', screenCount === 25);
 
         setLayout(screenCount);
         renderVideoList();
@@ -265,8 +409,8 @@ function saveSettings() {
 // ── Saved Groups ──────────────────────────────
 
 function saveGroup() {
-    if (savedGroups.length >= 10) {
-        alert('最多只能儲存 10 組記憶，請先刪除一組');
+    if (savedGroups.length >= 20) {
+        alert('最多只能儲存 20 組記憶，請先刪除一組');
         return;
     }
 
@@ -296,7 +440,9 @@ function loadGroup(id) {
     const group = savedGroups.find(g => g.id === id);
     if (!group) return;
 
+    currentGroupId = id;
     stopAllVideos();
+    resetGlobalControls();
 
     // Switch layout if it differs from the saved group
     if (group.screenCount !== screenCount) {
@@ -304,6 +450,7 @@ function loadGroup(id) {
         document.getElementById('layout-2x2').classList.toggle('active', group.screenCount === 4);
         document.getElementById('layout-3x3').classList.toggle('active', group.screenCount === 9);
         document.getElementById('layout-4x4').classList.toggle('active', group.screenCount === 16);
+        document.getElementById('layout-5x5').classList.toggle('active', group.screenCount === 25);
     }
 
     setTimeout(() => {
@@ -336,6 +483,15 @@ function renderGroups() {
         loadBtn.title = group.urls.filter(u => u).join('\n');
         loadBtn.addEventListener('click', () => loadGroup(group.id));
 
+        const editBtn = document.createElement('button');
+        editBtn.className = 'group-chip-edit';
+        editBtn.textContent = '✎';
+        editBtn.title = '編輯';
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openGroupEditModal(group.id);
+        });
+
         const delBtn = document.createElement('button');
         delBtn.className = 'group-chip-del';
         delBtn.textContent = '×';
@@ -346,11 +502,109 @@ function renderGroups() {
         });
 
         chip.appendChild(loadBtn);
+        chip.appendChild(editBtn);
         chip.appendChild(delBtn);
         bar.appendChild(chip);
     });
 
     bar.style.display = savedGroups.length > 0 ? 'flex' : 'none';
+}
+
+function openGroupEditModal(id) {
+    const group = savedGroups.find(g => g.id === id);
+    if (!group) return;
+
+    // Backdrop
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+
+    const box = document.createElement('div');
+    box.className = 'modal-box';
+
+    // Title
+    const title = document.createElement('div');
+    title.className = 'modal-title';
+    title.textContent = '編輯群組';
+
+    // Name input
+    const nameInput = document.createElement('input');
+    nameInput.className = 'modal-name-input';
+    nameInput.type = 'text';
+    nameInput.placeholder = '群組名稱';
+    nameInput.value = group.name;
+
+    // URL list
+    const urlList = document.createElement('div');
+    urlList.className = 'modal-url-list';
+
+    const addUrlRow = (url = '') => {
+        const row = document.createElement('div');
+        row.className = 'modal-url-row';
+
+        const input = document.createElement('input');
+        input.className = 'modal-url-input';
+        input.type = 'text';
+        input.value = url;
+        input.placeholder = 'https://...';
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'modal-url-del';
+        delBtn.textContent = '×';
+        delBtn.addEventListener('click', () => row.remove());
+
+        row.appendChild(input);
+        row.appendChild(delBtn);
+        urlList.appendChild(row);
+    };
+
+    group.urls.filter(u => u).forEach(addUrlRow);
+
+    // Add URL button
+    const addBtn = document.createElement('button');
+    addBtn.className = 'modal-add-url';
+    addBtn.textContent = '+ 新增網址';
+    addBtn.addEventListener('click', () => addUrlRow());
+
+    // Footer
+    const footer = document.createElement('div');
+    footer.className = 'modal-footer';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'modal-save';
+    saveBtn.textContent = '儲存';
+    saveBtn.addEventListener('click', () => {
+        const newName = nameInput.value.trim() || group.name;
+        const newUrls = Array.from(urlList.querySelectorAll('.modal-url-input'))
+            .map(i => i.value.trim())
+            .filter(u => u);
+
+        group.name = newName;
+        group.urls = newUrls;
+        chrome.storage.local.set({ savedGroups });
+        renderGroups();
+        backdrop.remove();
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'modal-cancel';
+    cancelBtn.textContent = '取消';
+    cancelBtn.addEventListener('click', () => backdrop.remove());
+
+    // Close on backdrop click
+    backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) backdrop.remove();
+    });
+
+    footer.appendChild(saveBtn);
+    footer.appendChild(cancelBtn);
+    box.appendChild(title);
+    box.appendChild(nameInput);
+    box.appendChild(urlList);
+    box.appendChild(addBtn);
+    box.appendChild(footer);
+    backdrop.appendChild(box);
+    document.body.appendChild(backdrop);
+    nameInput.focus();
 }
 
 // ── Placeholder / Overlay helpers ─────────────────────
@@ -359,14 +613,20 @@ function showPlaceholder(frameId) {
     const ph = document.getElementById(`placeholder${frameId}`);
     if (ph) ph.style.display = 'flex';
     const card = document.getElementById(`wrapper${frameId}`);
-    if (card) card.classList.remove('has-video');
+    if (card) {
+        card.classList.remove('has-video');
+        card.draggable = false;
+    }
 }
 
 function hidePlaceholder(frameId) {
     const ph = document.getElementById(`placeholder${frameId}`);
     if (ph) ph.style.display = 'none';
     const card = document.getElementById(`wrapper${frameId}`);
-    if (card) card.classList.add('has-video');
+    if (card) {
+        card.classList.add('has-video');
+        card.draggable = true;
+    }
 }
 
 function showInputOverlay(frameId) {
@@ -390,7 +650,7 @@ function setLayout(count) {
     const grid = document.getElementById('video-grid');
     grid.className = `video-grid count-${count}`;
 
-    for (let i = 1; i <= 16; i++) {
+    for (let i = 1; i <= 25; i++) {
         const wrapper = document.getElementById(`wrapper${i}`);
         if (i <= count) {
             wrapper.style.display = 'flex';
@@ -772,7 +1032,7 @@ function stopAllVideos() {
     isGlobalLoading = false;
     console.log("[Queue] Algorithm reset (Stop All).");
 
-    for (let i = 1; i <= 16; i++) {
+    for (let i = 1; i <= 25; i++) {
         stopFrame(i);
     }
 }

@@ -270,6 +270,14 @@ if (isSubscreen) {
                 const video = document.querySelector('video');
                 if (video) video.pause();
             }
+            if (data.event === 'command' && data.func === 'muteVideo') {
+                const video = document.querySelector('video');
+                if (video) video.muted = true;
+            }
+            if (data.event === 'command' && data.func === 'unmuteVideo') {
+                const video = document.querySelector('video');
+                if (video) video.muted = false;
+            }
             if (data.event === 'command' && data.func === 'releaseVideo') {
                 console.log(`[Content Frame ${frameId}] Releasing video resources...`);
                 const video = document.querySelector('video');
@@ -370,11 +378,14 @@ if (!isSubscreen) {
             ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.08)';
     };
 
-    // Highlight thumbnail
+    // Highlight thumbnail — apply to the closest card container for full coverage
     const highlightEl = (el, on) => {
-        el.style.outline = on ? '3px solid #a78bfa' : '';
-        el.style.outlineOffset = on ? '2px' : '';
-        el.style.borderRadius = on ? '4px' : '';
+        // Try to find the parent card (e.g. Pornhub: li.pcVideoListItem, YouTube: ytd-rich-item-renderer)
+        const card = el.closest('li, ytd-rich-item-renderer, ytd-video-renderer, article, [class*="VideoItem"], [class*="videoItem"]') || el;
+        card.style.opacity = on ? '0.35' : '';
+        card.style.outline = on ? '2px solid #a78bfa' : '';
+        card.style.borderRadius = on ? '6px' : '';
+        card.style.transition = 'opacity 0.15s';
     };
 
     // Intercept clicks on video links within the page
