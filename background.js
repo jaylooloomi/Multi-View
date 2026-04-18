@@ -1,7 +1,7 @@
 async function setupNetRequestRules() {
   const rules = [
     {
-      id: 1, // TikTok用
+      id: 1, // For TikTok
       priority: 100,
       action: {
         type: "modifyHeaders",
@@ -15,7 +15,7 @@ async function setupNetRequestRules() {
       },
     },
     {
-      id: 2, // 主要プラットフォーム用
+      id: 2, // For major platforms
       priority: 100,
       action: {
         type: "modifyHeaders",
@@ -35,7 +35,7 @@ async function setupNetRequestRules() {
       },
     },
     {
-      id: 3, // 追加サイト用
+      id: 3, // For additional sites
       priority: 100,
       action: {
         type: "modifyHeaders",
@@ -74,18 +74,18 @@ chrome.runtime.onInstalled.addListener(setupNetRequestRules);
 chrome.runtime.onStartup.addListener(setupNetRequestRules);
 setupNetRequestRules();
 
-// サイドパネルをアイコンクリックで開くように設定
+// Configure the side panel to open when the icon is clicked
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
 
-// content_script からの URL 送信を受け取り、面板を開いてから URL を渡す
+// Receive URL submissions from content_script, open the panel, then pass the URLs
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "loadUrlsToPanel") {
     const urls = request.urls || [];
     const tabId = sender.tab?.id;
 
-    // pending URL を storage に保存しておき、面板が開いたときに読み込む
+    // Save pending URLs to storage so they can be loaded when the panel opens
     chrome.storage.local.set({ pendingUrls: urls }, () => {
       if (tabId) {
         chrome.sidePanel.open({ tabId }).catch(e => console.error("sidePanel.open failed:", e));

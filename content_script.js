@@ -1,19 +1,19 @@
 /**
  * YouTube Multi Auto Playlist - Content Script
- * 役割:
- * 1. 登録チャンネルページ等からの動画リスト抽出 (Auto_Playlist機能)
- * 2. サイドパネル内iframeでの動画再生制御と不要要素の削除 (My_Subscreens機能)
- * 3. 動画終了の検知とバックグラウンド(サイドパネル)への通知
+ * Roles:
+ * 1. Extract video list from subscribed channel pages, etc. (Auto_Playlist feature)
+ * 2. Control video playback and remove unnecessary elements in iframes inside the side panel (My_Subscreens feature)
+ * 3. Detect video end and notify the background (side panel)
  */
 
-// --- 1. 動画リスト抽出機能 (Auto_Playlist由来) ---
+// --- 1. Video list extraction feature (derived from Auto_Playlist) ---
 
 function scrapeSubscriptionVideos() {
     console.log("[MultiPlaylist] Scraping started (Universal Title Recovery Mode)...");
 
     const isDuration = (text) => /^(\d{1,2}:)?\d{1,2}:\d{2}$/.test(text.trim());
 
-    // より広範なコンテナセレクタ
+    // Broader container selectors
     const itemSelectors = [
         "ytd-rich-grid-media",
         "ytd-rich-grid-video-renderer",
@@ -33,14 +33,14 @@ function scrapeSubscriptionVideos() {
     const seenIds = new Set();
 
     videoElements.forEach((el, index) => {
-        // 1. リンクと動画IDの特定
+        // 1. Identify the link and video ID
         const linkEl = el.querySelector("a#video-title-link") ||
             el.querySelector("a[href*='/watch?v=']") ||
             el.querySelector("a[href*='/live/']") ||
             el.querySelector("a#thumbnail");
 
         if (!linkEl) {
-            // デバッグ用ログ: どのセレクタで失敗したか確認
+            // Debug log: check which selector failed
             // console.log(`[MultiPlaylist] Video element ${index} skipped: No main link found. Content:`, el.innerHTML.substring(0, 100));
             return;
         }
@@ -53,14 +53,14 @@ function scrapeSubscriptionVideos() {
         if (!videoId) return;
         if (seenIds.has(videoId)) return;
 
-        // 2. タイトルの特定 (Auto_Playlist_Toolロジック)
+        // 2. Identify the title (Auto_Playlist_Tool logic)
         let title = "";
 
-        // 候補1: aria-label
+        // Candidate 1: aria-label
         const ariaLabel = linkEl.getAttribute("aria-label");
         if (ariaLabel) {
-            // " by [Channel]" や "による" を削除
-            // 日本語の "による" = \u306B\u3088\u308B
+            // Remove " by [Channel]" or "による" (Japanese for "by")
+            // Japanese "による" = \u306B\u3088\u308B
             title = ariaLabel.split(" \u306B\u3088\u308B")[0];
             title = title.split(" by ")[0];
             title = title.trim();
@@ -71,7 +71,7 @@ function scrapeSubscriptionVideos() {
             }
         }
 
-        // 候補2: title属性
+        // Candidate 2: title attribute
         if (!title || title === "No Title") {
             const titleAttr = linkEl.getAttribute("title") ||
                 (el.querySelector("#video-title")?.getAttribute("title")) || "";
@@ -80,7 +80,7 @@ function scrapeSubscriptionVideos() {
             }
         }
 
-        // 候補3: innerText
+        // Candidate 3: innerText
         if (!title || title === "No Title") {
             const titleEl = el.querySelector("#video-title") || el.querySelector("yt-formatted-string");
             if (titleEl) {
@@ -91,7 +91,7 @@ function scrapeSubscriptionVideos() {
             }
         }
 
-        // 候補4: 最終手段（コンテナ内のまともなテキスト）
+        // Candidate 4: Last resort (any reasonable text inside the container)
         if (!title || title === "No Title") {
             const allSpans = Array.from(el.querySelectorAll("span, a, yt-formatted-string"));
             for (const s of allSpans) {
@@ -111,7 +111,7 @@ function scrapeSubscriptionVideos() {
             title: title.trim(),
             url: `https://www.youtube.com/watch?v=${videoId}`,
             timestamp: Date.now(),
-            originalIndex: videos.length // ソート用に元の並び順を保存
+            originalIndex: videos.length // Save original order for sorting
         });
     });
 
@@ -120,16 +120,16 @@ function scrapeSubscriptionVideos() {
 }
 
 
-// --- 2. サイドパネル内iframe動作モード (My_Subscreens由来 + 追加機能) ---
+// --- 2. iframe operation mode inside the side panel (derived from My_Subscreens + additional features) ---
 
 const params = new URLSearchParams(window.location.search);
 const isSubscreen = params.get("subscreen") === "1";
-const frameId = params.get("frameId"); // サイドパネルから渡されるフレーム識別子 (1~4)
+const frameId = params.get("frameId"); // Frame identifier passed from the side panel (1~4)
 
 if (isSubscreen) {
     console.log(`[MultiPlaylist] Running in subscreen mode. Frame: ${frameId}`);
 
-    // スタイル注入: 全画面黒背景、プレイヤー以外非表示
+    // Style injection: full-screen black background, hide everything except the player
     const injectCSS = (css) => {
         const style = document.createElement('style');
         style.textContent = css;
@@ -164,41 +164,41 @@ if (isSubscreen) {
             yt-interaction, .ytp-error-screen { pointer-events: none !important; }
         `);
 
-        // 再生制御と終了通知
+        // Playback control and end notification
         let hasStarted = false;
 
         const monitorPlayback = () => {
             const video = document.querySelector('video');
             if (!video) return;
 
-            // 自動再生の補助
+            // Assist autoplay
             if (video.paused && !hasStarted) {
                 video.play().then(() => hasStarted = true).catch(() => {
-                    // 自動再生ブロック時はクリック待ち (まあサイドパネル内なので緩いかも)
+                    // When autoplay is blocked, wait for a click (may be lenient since it's inside the side panel)
                 });
             } else if (!video.paused) {
                 hasStarted = true;
             }
 
-            // 終了検知
+            // End detection
             if (video.ended) {
                 console.log(`[MultiPlaylist] Video ended in Frame ${frameId}. Notifying parent.`);
-                // 連続送信を防ぐため、少し待機するか、メッセージを送って遷移を待つ
-                // ここではメッセージを投げるだけ。遷移はサイドパネルがやる。
+                // To prevent repeated sends, wait a moment or send a message and wait for transition
+                // Here we just fire the message. The side panel handles the transition.
                 chrome.runtime.sendMessage({
                     action: "videoEnded",
                     frameId: frameId,
                     videoId: params.get("v")
                 });
-                // 再度通知しないようにリスナーを解除するか、videoの状態が変わるのを待つ
-                // ただし、同じvideo要素が再利用されることもあるので、シンプルにendedイベントのみでも良いが、
-                // ポーリングしているのでフラグ管理が必要かも。
-                // とりあえず video.ended は true のままなので、連続送信されうる。
-                // サイドパネル側でデバウンスした方が安全。
+                // Either remove the listener to avoid re-notifying, or wait for the video state to change
+                // However, the same video element may be reused, so using the ended event alone may suffice,
+                // but since we are polling, flag management may be needed.
+                // For now, video.ended remains true, so repeated sends are possible.
+                // Debouncing on the side panel side is safer.
             }
         };
 
-        // イベントリスナーベースに変更（ポーリングより軽い）
+        // Switched to event listener-based approach (lighter than polling)
         const setupVideoListener = () => {
             const video = document.querySelector('video');
             if (video && !video.dataset.listening) {
@@ -215,10 +215,10 @@ if (isSubscreen) {
             }
         };
 
-        setInterval(setupVideoListener, 1000); // videoタグが生成されるのを待つ
+        setInterval(setupVideoListener, 1000); // Wait for the video tag to be created
     }
 
-    // 全プラットフォーム共通: video ended 監視
+    // Common to all platforms: monitor video ended
     if (!location.hostname.includes("youtube.com")) {
         const setupVideoListenerGeneric = () => {
             const video = document.querySelector('video');
@@ -233,7 +233,7 @@ if (isSubscreen) {
                     });
                 });
 
-                // embed iframe 環境で強制ミュートされる場合があるため unmute する
+                // Unmute because the video may be force-muted in an embedded iframe environment
                 video.muted = false;
                 video.addEventListener("volumechange", () => {
                     if (video.muted) video.muted = false;
@@ -243,7 +243,7 @@ if (isSubscreen) {
         setInterval(setupVideoListenerGeneric, 1000);
     }
 
-    // 親(sidepanel)からの制御メッセージを受け取る (全プラットフォーム共通)
+    // Receive control messages from the parent (side panel) — common to all platforms
     window.addEventListener("message", (event) => {
         try {
             const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
@@ -257,13 +257,13 @@ if (isSubscreen) {
                 const video = document.querySelector('video');
                 if (!video) return;
 
-                // 一度も再生されていない → プラットフォームのボタンをクリック
+                // Never played before → click the platform's button
                 if (video.played.length === 0) {
                     const platformBtn = document.querySelector('.mgp_playIcon');
                     if (platformBtn) { platformBtn.click(); return; }
                 }
 
-                // 再生済み（一時停止中）→ video.play() で制御可能
+                // Already played (paused) → controllable via video.play()
                 video.play().catch(e => console.error("Play failed:", e));
             }
             if (data.event === 'command' && data.func === 'pauseVideo') {
@@ -284,28 +284,28 @@ if (isSubscreen) {
                 }
             }
         } catch (e) {
-            // 無視
+            // Ignore
         }
     });
 }
 
-// --- 3. 選択モード UI (サイドパネル外のページに注入) ---
+// --- 3. Selection mode UI (injected into pages outside the side panel) ---
 if (!isSubscreen) {
     let selectMode = false;
     let selectedUrls = [];
 
-    // ビデオリンクかどうか判定
+    // Determine whether the href is a video link
     const isVideoLink = (href) => {
         if (!href) return false;
         return /\/(video|watch|embed|live)\b|viewkey=|\/videos\/\d+/i.test(href);
     };
 
-    // URLを正規化（フルURLにする）
+    // Normalize URL (make it a full URL)
     const resolveUrl = (href) => {
         try { return new URL(href, location.href).href; } catch { return href; }
     };
 
-    // 浮動ツールバーを作成
+    // Create floating toolbar
     const toolbar = document.createElement('div');
     toolbar.id = '__mv_toolbar__';
     toolbar.style.cssText = `
@@ -370,14 +370,14 @@ if (!isSubscreen) {
             ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.08)';
     };
 
-    // サムネイルのハイライト
+    // Highlight thumbnail
     const highlightEl = (el, on) => {
         el.style.outline = on ? '3px solid #a78bfa' : '';
         el.style.outlineOffset = on ? '2px' : '';
         el.style.borderRadius = on ? '4px' : '';
     };
 
-    // ページ内のビデオリンクをクリックインターセプト
+    // Intercept clicks on video links within the page
     document.addEventListener('click', (e) => {
         if (!selectMode) return;
         const link = e.target.closest('a[href]');
@@ -401,7 +401,7 @@ if (!isSubscreen) {
     toggleBtn.addEventListener('click', () => {
         selectMode = !selectMode;
         if (!selectMode) {
-            // 選択解除時にハイライトをクリア
+            // Clear highlights when deselecting
             document.querySelectorAll('a[href]').forEach(a => highlightEl(a, false));
         }
         updateUI();
@@ -421,11 +421,11 @@ if (!isSubscreen) {
                 urls: selectedUrls
             });
         } catch (e) {
-            // 擴充功能已重新載入，提示使用者刷新頁面
+            // Extension has been reloaded; prompt the user to refresh the page
             alert('擴充功能已更新，請重新整理此頁面後再試');
             return;
         }
-        // リセット
+        // Reset
         document.querySelectorAll('a[href]').forEach(a => highlightEl(a, false));
         selectedUrls = [];
         selectMode = false;
@@ -433,7 +433,7 @@ if (!isSubscreen) {
     });
 }
 
-// --- 4. メッセージハンドラ (リスト取得用) ---
+// --- 4. Message handler (for retrieving the video list) ---
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getVideos") {
         const videos = scrapeSubscriptionVideos();

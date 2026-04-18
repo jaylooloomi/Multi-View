@@ -4,7 +4,7 @@ window.convertToEmbedUrl = (rawText, frameId) => {
 
     let url = text;
 
-    // 1. 各種埋め込みURLへの変換
+    // 1. Convert to various embed URLs
     const genericIframeMatch = text.match(/src="([^"]+)"/);
     if (genericIframeMatch && genericIframeMatch[1]) {
         url = genericIframeMatch[1];
@@ -30,7 +30,7 @@ window.convertToEmbedUrl = (rawText, frameId) => {
                         if (phMatch) {
                             url = `https://www.pornhub.com/embed/${phMatch[1]}`;
                         }
-                        // Twitchなどは省略（必要なら追加）
+                        // Twitch etc. omitted (add if needed)
                         const parentParam = 'localhost';
                         const twitchClipMatch = text.match(/(?:clips\.twitch\.tv\/|twitch\.tv\/\w+\/clip\/)([^?&"'\s/]+)/i);
                         if (twitchClipMatch) {
@@ -46,27 +46,27 @@ window.convertToEmbedUrl = (rawText, frameId) => {
         }
     }
 
-    // http/https補完
+    // Prepend http/https if missing
     if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
         url = 'https://' + url;
     }
 
-    // 2. パラメータ追加
-    // subscreen=1 と frameId を追加して埋め込みモードであることと、どのフレームかを伝える
-    // enablejsapi=1 を追加して、postMessageによる制御 (一時停止、画質変更) を可能にする
+    // 2. Add parameters
+    // Add subscreen=1 and frameId to indicate embed mode and which frame this is
+    // Add enablejsapi=1 to enable control via postMessage (pause, quality change, etc.)
     try {
         const urlObj = new URL(url);
         urlObj.searchParams.set('subscreen', '1');
-        urlObj.searchParams.set('enablejsapi', '1'); // API有効化
-        urlObj.searchParams.set('origin', window.location.origin); // クロスオリジンセキュリティ対策
+        urlObj.searchParams.set('enablejsapi', '1'); // Enable API
+        urlObj.searchParams.set('origin', window.location.origin); // Cross-origin security measure
         urlObj.searchParams.set('autoplay', '0');
-        // mute 不設定，讓瀏覽器預設行為決定
+        // mute not set — let the browser's default behavior decide
         if (frameId) {
             urlObj.searchParams.set('frameId', frameId);
         }
         return urlObj.toString();
     } catch (e) {
-        // URL解析失敗時はそのまま返す（またはnull）
+        // On URL parse failure, return as-is (or null)
         console.error("Invalid URL:", url);
         return url;
     }

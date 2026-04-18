@@ -1,12 +1,12 @@
 // YouTube Multi Auto Playlist - Side Panel Logic
 
 let videoList = [];
-let nextGlobalIndex = 0; // 次に割り当てるべきリストのインデックス
+let nextGlobalIndex = 0; // The list index to be assigned next
 let screenCount = 4;
 let isAutoPlay = true;
 let savedGroups = [];
 
-// 各フレームの状態管理
+// State management for each frame
 const frameStates = {
     1: { videoId: null, listIndex: -1, isProcessing: false },
     2: { videoId: null, listIndex: -1, isProcessing: false },
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
-    // レイアウト切替ボタン
+    // Layout toggle buttons
     document.getElementById('layout-2x2').addEventListener('click', () => {
         setLayout(4);
         document.getElementById('layout-2x2').classList.add('active');
@@ -62,13 +62,13 @@ function setupEventListeners() {
         document.getElementById('layout-3x3').classList.remove('active');
     });
 
-    // 清空ボタン
+    // Clear all button
     document.getElementById('btn-clear-all').addEventListener('click', stopAllVideos);
 
-    // 記憶ボタン
+    // Save group button
     document.getElementById('btn-save-group').addEventListener('click', saveGroup);
 
-    // 複製ボタン：現在のフレームのURLをクリップボードにコピー
+    // Copy button: copy the current frame URLs to the clipboard
     document.getElementById('btn-copy-urls').addEventListener('click', async () => {
         const urls = [];
         for (let i = 1; i <= screenCount; i++) {
@@ -90,7 +90,7 @@ function setupEventListeners() {
         }
     });
 
-    // 貼上ボタン
+    // Paste button
     document.getElementById('btn-paste-urls').addEventListener('click', async () => {
         try {
             const text = await navigator.clipboard.readText();
@@ -112,50 +112,50 @@ function setupEventListeners() {
         }
     });
 
-    // 各フレームのコントロール
+    // Controls for each frame
     for (let i = 1; i <= 16; i++) {
-        // + ボタン: URLオーバーレイを表示
+        // + button: show URL overlay
         document.querySelector(`.plus-circle[data-frame="${i}"]`).addEventListener('click', () => {
             showInputOverlay(i);
         });
-        // 取消ボタン
+        // Cancel button
         document.querySelector(`.cancel-btn[data-frame="${i}"]`).addEventListener('click', () => {
             hideInputOverlay(i);
         });
-        // 播放ボタン
+        // Play button
         document.querySelector(`.load-btn[data-frame="${i}"]`).addEventListener('click', () => {
             const input = document.getElementById(`url${i}`);
             loadUrlToFrame(i, input.value);
         });
-        // Input Enterキー
+        // Input Enter key
         document.getElementById(`url${i}`).addEventListener('keydown', (e) => {
             if (e.key === 'Enter') loadUrlToFrame(i, e.target.value);
         });
-        // Nextボタン
+        // Next button
         document.querySelector(`.skip-btn[data-frame="${i}"]`).addEventListener('click', () => {
             playNextVideo(i);
         });
-        // Playボタン
+        // Play button
         document.querySelector(`.play-btn[data-frame="${i}"]`).addEventListener('click', () => {
             sendMessageToFrame(i, 'playVideo');
         });
-        // Pauseボタン
+        // Pause button
         document.querySelector(`.pause-btn[data-frame="${i}"]`).addEventListener('click', () => {
             sendMessageToFrame(i, 'pauseVideo');
         });
-        // Reloadボタン
+        // Reload button
         const reloadBtn = document.querySelector(`.reload-btn[data-frame="${i}"]`);
         if (reloadBtn) {
             reloadBtn.addEventListener('click', () => {
                 reloadFrame(i);
             });
         }
-        // Stopボタン
+        // Stop button
         document.querySelector(`.stop-btn[data-frame="${i}"]`).addEventListener('click', () => {
             stopFrame(i);
         });
 
-        // ドラッグ&ドロップ
+        // Drag & drop
         const card = document.getElementById(`wrapper${i}`);
         card.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -168,7 +168,7 @@ function setupEventListeners() {
             e.preventDefault();
             card.classList.remove('drag-over');
 
-            // 多行 URL を取得（text/uri-list は改行区切りで複数URL含む場合あり）
+            // Retrieve multi-line URLs (text/uri-list may contain multiple URLs separated by newlines)
             console.log('[Drop] types:', [...e.dataTransfer.types]);
             console.log('[Drop] uri-list:', e.dataTransfer.getData('text/uri-list'));
             console.log('[Drop] plain:', e.dataTransfer.getData('text/plain'));
@@ -181,14 +181,14 @@ function setupEventListeners() {
                 if (match) raw = match[1];
             }
 
-            // # コメント行・空行を除外して URL リストを作る
+            // Build URL list, excluding comment lines starting with # and empty lines
             const urls = raw.split('\n')
                 .map(u => u.trim())
                 .filter(u => u && !u.startsWith('#'));
 
             if (urls.length === 0) return;
 
-            // 複数 URL は放り込んだフレームから順に各フレームへ割り当て
+            // Assign multiple URLs to frames sequentially starting from the dropped frame
             urls.forEach((url, offset) => {
                 const targetFrame = i + offset;
                 if (targetFrame <= screenCount) {
@@ -198,9 +198,9 @@ function setupEventListeners() {
         });
     }
 
-    // メッセージ受信
+    // Receive messages
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        // ページから複数URLを受信して各フレームに割り当て
+        // Receive multiple URLs from the page and assign them to each frame
         if (request.action === "loadUrlsToPanel") {
             const urls = request.urls || [];
             autoSelectLayout(urls.length);
@@ -239,7 +239,7 @@ function loadSettings() {
         renderVideoList();
         renderGroups();
 
-        // ページから送られた pendingUrls があれば読み込む
+        // If pendingUrls were sent from the page, load them
         if (data.pendingUrls && data.pendingUrls.length > 0) {
             const urls = data.pendingUrls;
             chrome.storage.local.remove('pendingUrls');
@@ -262,7 +262,7 @@ function saveSettings() {
     });
 }
 
-// ── 記憶グループ ──────────────────────────────
+// ── Saved Groups ──────────────────────────────
 
 function saveGroup() {
     if (savedGroups.length >= 10) {
@@ -298,7 +298,7 @@ function loadGroup(id) {
 
     stopAllVideos();
 
-    // レイアウトが違う場合は切り替え
+    // Switch layout if it differs from the saved group
     if (group.screenCount !== screenCount) {
         setLayout(group.screenCount);
         document.getElementById('layout-2x2').classList.toggle('active', group.screenCount === 4);
@@ -316,7 +316,7 @@ function loadGroup(id) {
 
 function deleteGroup(id) {
     savedGroups = savedGroups.filter(g => g.id !== id);
-    // 名前を振り直す
+    // Reassign names
     savedGroups.forEach((g, idx) => { g.name = `群組 ${idx + 1}`; });
     chrome.storage.local.set({ savedGroups });
     renderGroups();
@@ -402,7 +402,7 @@ function setLayout(count) {
     saveSettings();
 }
 
-// 後方互換性のため
+// For backward compatibility
 function updateScreenCount(count) {
     setLayout(count);
 }
@@ -410,8 +410,8 @@ function updateScreenCount(count) {
 function sortList(descending) {
     if (videoList.length === 0) return;
 
-    // originalIndex (取得順) を基準にソート
-    // 動画にoriginalIndexがない場合（古いバージョンのキャッシュなど）はtimestampを使う
+    // Sort based on originalIndex (acquisition order)
+    // If a video has no originalIndex (e.g. old version cache), use timestamp instead
     videoList.sort((a, b) => {
         const idxA = a.originalIndex !== undefined ? a.originalIndex : (a.timestamp || 0);
         const idxB = b.originalIndex !== undefined ? b.originalIndex : (b.timestamp || 0);
@@ -454,8 +454,8 @@ function handleVideoListResponse(response) {
         document.getElementById('list-status').innerText = `Videos: ${videoList.length}`;
         saveSettings();
 
-        // 自動スタートは廃止 (ユーザー要望: 再生する最初の動画はこちらで選びます)
-        // distributeVideosToEmptyFrames(); 
+        // Auto-start removed (user request: user selects the first video to play)
+        // distributeVideosToEmptyFrames();
     } else {
         console.warn("No videos found in response:", response);
         alert("No videos found. Please check if you are on a YouTube subscription or playlist page.");
@@ -484,8 +484,8 @@ function renderVideoList() {
         div.innerText = `${index + 1}. ${video.title}`;
         div.title = video.title;
 
-        // クリック時: どこで再生するか？
-        // 空いているフレームがあればそこで再生。なければフレーム1で強制再生。
+        // On click: where to play?
+        // If there is an empty frame, play there. Otherwise force play in frame 1.
         div.addEventListener('click', () => {
             playVideoByIndex(index);
         });
@@ -497,11 +497,11 @@ function renderVideoList() {
 function playVideoByIndex(index) {
     if (index < 0 || index >= videoList.length) return;
 
-    // 空いているフレームを探す
+    // Find an empty frame
     let targetFrameId = 1;
     let foundEmpty = false;
 
-    // 現在の screenCount の範囲内で探す
+    // Search within the current screenCount range
     for (let i = 1; i <= screenCount; i++) {
         const iframe = document.getElementById(`screen${i}`);
         if (iframe.src === "about:blank") {
@@ -511,41 +511,41 @@ function playVideoByIndex(index) {
         }
     }
 
-    // 空いてなければフレーム1 (デフォルト)
+    // If no empty frame, use frame 1 (default)
     const video = videoList[index];
 
-    // nextGlobalIndex をクリックした動画のインデックスに設定
-    // playNextVideo関数内でこれが使用され、再生後にインクリメントされる
+    // Set nextGlobalIndex to the clicked video's index
+    // This is used inside playNextVideo and incremented after playback
     nextGlobalIndex = index;
 
-    // 直接ロードせず、キューシステムを通すために playNextVideo を使用する
-    // これにより、連打しても順番待ちになりフリーズを防げる
+    // Do not load directly; use playNextVideo to go through the queue system
+    // This prevents freezing even if the user clicks rapidly, as requests are queued
     playNextVideo(targetFrameId);
 
-    // リスト自動整理 (一時停止)
+    // Auto-cleanup list (paused)
     // cleanupPlaylist();
     saveSettings();
 }
 
-// ■ 読み込み制御用キューシステム
-let videoLoadQueue = []; // 読み込み待ちのフレームIDリスト
-let isGlobalLoading = false; // 現在どこかのフレームが読み込み処理中か
+// ■ Queue system for load control
+let videoLoadQueue = []; // List of frame IDs waiting to be loaded
+let isGlobalLoading = false; // Whether any frame is currently being processed
 
 function playNextVideo(frameId) {
-    // 重複チェック: 既にキューにあるか、処理中なら何もしない
+    // Duplicate check: skip if already in queue or being processed
     if (videoLoadQueue.includes(frameId) || frameStates[frameId].isProcessing) {
         console.log(`[Queue] Frame ${frameId} skipped (queued/processing).`);
         return;
     }
 
-    // キューに追加
+    // Add to queue
     console.log(`[Queue] Enqueue Frame ${frameId}`);
     videoLoadQueue.push(frameId);
-    updateStatusDisplay(); // 表示更新
+    updateStatusDisplay(); // Update display
 
-    frameStates[frameId].isProcessing = true; // 予約済み状態にする
+    frameStates[frameId].isProcessing = true; // Mark as reserved
 
-    // キュー処理開始
+    // Start queue processing
     processLoadQueue();
 }
 
@@ -561,7 +561,7 @@ function updateStatusDisplay() {
 }
 
 function processLoadQueue() {
-    // 既に他のロードが走っている、またはキューが空なら何もしない
+    // Do nothing if another load is already running or the queue is empty
     if (isGlobalLoading || videoLoadQueue.length === 0) {
         updateStatusDisplay();
         return;
@@ -570,36 +570,36 @@ function processLoadQueue() {
     isGlobalLoading = true;
     updateStatusDisplay();
 
-    const frameId = videoLoadQueue.shift(); // 先頭を取り出す
+    const frameId = videoLoadQueue.shift(); // Dequeue the first entry
     console.log(`[Queue] Msg: Start processing Frame ${frameId}`);
 
     if (nextGlobalIndex >= videoList.length) {
         console.log("End of list reached.");
         frameStates[frameId].isProcessing = false;
         isGlobalLoading = false;
-        processLoadQueue(); // 次があれば処理
+        processLoadQueue(); // Process next item if available
         return;
     }
 
-    // 【強化】リセット処理の3段階化 (ソフトストップ導入) - Timer Reverted
-    // 0. まずiframeの中身(YouTube)に「動画リソースを捨てろ」と命令する
+    // [Enhanced] 3-stage reset process (soft stop introduced) - Timer Reverted
+    // 0. First, instruct the iframe content (YouTube) to release video resources
     sendMessageToFrame(frameId, 'releaseVideo');
 
-    // 0.8秒待ってから物理リセット (コマンドが届いて処理されるのを待つ - Handshake撤去に伴い固定ウェイト)
+    // Wait 0.8s before physical reset (wait for the command to arrive and be processed — fixed wait after removing handshake)
     setTimeout(() => {
 
-        // 1. 既存のiframeを空ページに遷移
+        // 1. Navigate the existing iframe to a blank page
         const oldIframe = document.getElementById(`screen${frameId}`);
         if (oldIframe) {
             oldIframe.src = "about:blank";
         }
 
-        // 2. 0.2秒待ってからDOM再適用
+        // 2. Wait 0.2s then re-apply DOM
         setTimeout(() => {
-            // iframe再設定
+            // Reconfigure iframe
             recreateIframe(frameId);
 
-            // 3. 1.0秒待ってからロード開始
+            // 3. Wait 1.0s then start loading
             setTimeout(() => {
                 const video = videoList[nextGlobalIndex];
                 const currentIndex = nextGlobalIndex;
@@ -608,82 +608,82 @@ function processLoadQueue() {
                 loadVideoToFrame(frameId, video, currentIndex);
                 saveSettings();
 
-                // 読み込み完了とみなすまでのインターバル (3秒)
-                // YouTubeの初期化負荷が落ち着くまで次のロードを待たせる
+                // Interval until load is considered complete (3 seconds)
+                // Hold off the next load until YouTube's initialization overhead settles
                 setTimeout(() => {
                     console.log(`[Queue] Frame ${frameId} sequence done. Next?`);
 
                     frameStates[frameId].isProcessing = false;
                     isGlobalLoading = false;
 
-                    // 次のキューを処理
+                    // Process next item in queue
                     updateStatusDisplay();
                     processLoadQueue();
                 }, 3000);
 
             }, 1000);
-        }, 200); // Step 2 (recreate) 待ち時間
+        }, 200); // Step 2 (recreate) wait time
 
-    }, 800); // Step 0 (release) 待ち時間
+    }, 800); // Step 0 (release) wait time
 }
 
 // startReleaseWait and proceedToReset removed
 
-// iframeを再利用・リセットするヘルパー (DOM破壊を避ける)
+// Helper to reuse/reset an iframe (avoiding DOM destruction)
 function recreateIframe(frameId) {
     const wrapper = document.getElementById(`wrapper${frameId}`);
     const box = wrapper.querySelector('.screen-box');
     let iframe = document.getElementById(`screen${frameId}`);
 
     if (!iframe) {
-        // 存在しない場合のみ新規作成
+        // Only create a new one if it does not exist
         iframe = document.createElement('iframe');
         iframe.id = `screen${frameId}`;
         iframe.allow = "autoplay; encrypted-media; fullscreen";
-        // iframe.style.border = "none"; // 必要なら
+        // iframe.style.border = "none"; // Add if needed
         box.appendChild(iframe);
     }
 
-    // 念のため属性を再適用（既存の場合も）
+    // Re-apply attributes to be safe (even for existing iframes)
     iframe.allow = "autoplay; encrypted-media; fullscreen";
 
-    // srcをリセット (まだblankでなければ)
-    // 呼び出し元ですでに blank にされていることが多いが、stopFrame等からの呼び出し用
+    // Reset src (if not already blank)
+    // Often already set to blank by the caller, but this handles calls from stopFrame etc.
     if (iframe.src !== "about:blank") {
         iframe.src = "about:blank";
     }
 }
 
 function cleanupPlaylist() {
-    // nextGlobalIndex が現在の「これから再生する先頭」。
-    // 再生済みの動画は 0 ～ nextGlobalIndex-1 にある。
-    // 「そこから10個以上古いもの」を削除したい。
-    // つまり、nextGlobalIndex - 10 より前のインデックスのものを消す。
+    // nextGlobalIndex is the current head — the next video to be played.
+    // Played videos are at indices 0 to nextGlobalIndex-1.
+    // We want to remove those older than 10 positions from there.
+    // That means removing items with an index before nextGlobalIndex - 10.
 
     const keepMargin = 10;
-    // 削除対象の終端インデックス (これ未満を消す)
+    // End index of items to delete (remove everything before this index)
     const deleteThreshold = nextGlobalIndex - keepMargin;
 
     if (deleteThreshold > 0) {
-        // 削除実行
-        // deleteThreshold 個の要素を先頭から削除
+        // Execute deletion
+        // Remove deleteThreshold elements from the beginning
         videoList.splice(0, deleteThreshold);
 
         console.log(`[Cleanup] Deleted ${deleteThreshold} played videos.`);
 
-        // インデックスの補正
-        // nextGlobalIndex も前にずれる
+        // Correct indices
+        // nextGlobalIndex also shifts forward
         nextGlobalIndex -= deleteThreshold;
         if (nextGlobalIndex < 0) nextGlobalIndex = 0;
 
-        // 各フレームの再生中インデックスも補正
+        // Also correct the currently-playing index of each frame
         Object.keys(frameStates).forEach(key => {
             const state = frameStates[key];
             if (state.listIndex !== -1) {
                 state.listIndex -= deleteThreshold;
-                // もし削除された範囲に含まれていたら（負になったら）、
-                // もうリスト上にはないが、再生中なのでそのままにするか、-1にするか。
-                // UI上のハイライトが消えるだけなので許容。
+                // If it falls within the deleted range (becomes negative),
+                // it no longer exists in the list, but it is still playing — leave it or set to -1.
+                // Only the UI highlight disappears, which is acceptable.
                 if (state.listIndex < 0) state.listIndex = -1;
             }
         });
@@ -741,20 +741,19 @@ function stopFrame(frameId) {
 function reloadFrame(frameId) {
     console.log(`[SidePanel] Reloading frame ${frameId}...`);
 
-    // 強制ロック解除 & グローバルロックも解除 (詰まり防止)
+    // Force unlock & also release global lock (prevent stalling)
     // clearReleaseState(frameId); // Removed
     frameStates[frameId].isProcessing = false;
-    // リロード時は強制的に割り込むため、グローバルロックは触らないか、
-    // もしくはキューが詰まっているならリセットする等の配慮が必要だが、
-    // いったん個別のロック解除のみにする。
+    // On reload we forcibly interrupt, so we could leave the global lock alone,
+    // or reset it if the queue is stalled — for now, only release the individual lock.
 
     const currentState = frameStates[frameId];
     const currentUrlInput = document.getElementById(`url${frameId}`).value;
 
-    // iframe再生成 (リセット)
+    // Recreate iframe (reset)
     recreateIframe(frameId);
 
-    // 0.1秒待ってから再ロード (DOM反映待ち)
+    // Wait 0.1s then reload (wait for DOM to update)
     setTimeout(() => {
         if (currentState.listIndex !== -1 && videoList[currentState.listIndex]) {
             const video = videoList[currentState.listIndex];
@@ -768,7 +767,7 @@ function reloadFrame(frameId) {
 }
 
 function stopAllVideos() {
-    // キューを全消去
+    // Clear the entire queue
     videoLoadQueue = [];
     isGlobalLoading = false;
     console.log("[Queue] Algorithm reset (Stop All).");
@@ -778,28 +777,28 @@ function stopAllVideos() {
     }
 }
 
-// ユーザー要望による「再生済みクリア」
+// "Clear played videos" — user-requested feature
 function clearPlayedVideos() {
-    // nextGlobalIndex より前の動画（既に割り当てられたもの）を全て削除
+    // Delete all videos before nextGlobalIndex (those already assigned)
     if (nextGlobalIndex > 0) {
         const deleteCount = nextGlobalIndex;
-        // リストから削除
+        // Remove from list
         const deleted = videoList.splice(0, deleteCount);
 
         console.log(`[Manual Cleanup] Deleted ${deleted.length} played videos.`);
 
-        // インデックス補正
-        // 先頭が「次に再生する動画」になるので、nextGlobalIndex は 0 になる
+        // Correct indices
+        // The head becomes the next video to play, so nextGlobalIndex becomes 0
         nextGlobalIndex = 0;
 
-        // 各フレームで再生中の動画のインデックス情報も補正しないと、UI上のハイライトがズレる
+        // Also correct the index info for currently-playing videos per frame, or the UI highlight will be off
         Object.keys(frameStates).forEach(key => {
             const state = frameStates[key];
             if (state.listIndex !== -1) {
                 state.listIndex -= deleteCount;
-                // もし削除された範囲に含まれていたら（負になったら）、
-                // もうリスト上にはないが、再生中なのでそのままにするか、-1にするか。
-                // UI上のハイライトが消えるだけなので許容。
+                // If it falls within the deleted range (becomes negative),
+                // it no longer exists in the list, but it is still playing — leave it or set to -1.
+                // Only the UI highlight disappears, which is acceptable.
                 if (state.listIndex < 0) state.listIndex = -1;
             }
         });
@@ -812,7 +811,7 @@ function clearPlayedVideos() {
 }
 
 
-// iframe内のYouTubeプレイヤーにコマンドを送信するヘルパー
+// Helper to send commands to the YouTube player inside an iframe
 function sendMessageToFrame(frameId, command, args = []) {
     const iframe = document.getElementById(`screen${frameId}`);
     if (iframe && iframe.contentWindow) {
@@ -820,7 +819,7 @@ function sendMessageToFrame(frameId, command, args = []) {
             event: 'command',
             func: command,
             args: args,
-            targetFrameId: frameId // 【NEW】宛先フレームIDを指定
+            targetFrameId: frameId // [NEW] Specify destination frame ID
         }), '*');
         console.log(`[API] Sent ${command} to Frame ${frameId}`);
     }
