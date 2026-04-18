@@ -60,7 +60,7 @@ window.convertToEmbedUrl = (rawText, frameId) => {
         urlObj.searchParams.set('enablejsapi', '1'); // API有効化
         urlObj.searchParams.set('origin', window.location.origin); // クロスオリジンセキュリティ対策
         urlObj.searchParams.set('autoplay', '0');
-        urlObj.searchParams.set('mute', '0');
+        // mute 不設定，讓瀏覽器預設行為決定
         if (frameId) {
             urlObj.searchParams.set('frameId', frameId);
         }

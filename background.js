@@ -78,3 +78,20 @@ setupNetRequestRules();
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
+
+// content_script からの URL 送信を受け取り、面板を開いてから URL を渡す
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "loadUrlsToPanel") {
+    const urls = request.urls || [];
+    const tabId = sender.tab?.id;
+
+    // pending URL を storage に保存しておき、面板が開いたときに読み込む
+    chrome.storage.local.set({ pendingUrls: urls }, () => {
+      if (tabId) {
+        chrome.sidePanel.open({ tabId }).catch(e => console.error("sidePanel.open failed:", e));
+      }
+    });
+    sendResponse({ ok: true });
+    return true;
+  }
+});

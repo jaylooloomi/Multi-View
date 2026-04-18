@@ -16,8 +16,25 @@ const frameStates = {
     6: { videoId: null, listIndex: -1, isProcessing: false },
     7: { videoId: null, listIndex: -1, isProcessing: false },
     8: { videoId: null, listIndex: -1, isProcessing: false },
-    9: { videoId: null, listIndex: -1, isProcessing: false }
+    9: { videoId: null, listIndex: -1, isProcessing: false },
+    10: { videoId: null, listIndex: -1, isProcessing: false },
+    11: { videoId: null, listIndex: -1, isProcessing: false },
+    12: { videoId: null, listIndex: -1, isProcessing: false },
+    13: { videoId: null, listIndex: -1, isProcessing: false },
+    14: { videoId: null, listIndex: -1, isProcessing: false },
+    15: { videoId: null, listIndex: -1, isProcessing: false },
+    16: { videoId: null, listIndex: -1, isProcessing: false }
 };
+
+function autoSelectLayout(urlCount) {
+    let count = 4;
+    if (urlCount > 9) count = 16;
+    else if (urlCount > 4) count = 9;
+    setLayout(count);
+    document.getElementById('layout-2x2').classList.toggle('active', count === 4);
+    document.getElementById('layout-3x3').classList.toggle('active', count === 9);
+    document.getElementById('layout-4x4').classList.toggle('active', count === 16);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
@@ -30,11 +47,19 @@ function setupEventListeners() {
         setLayout(4);
         document.getElementById('layout-2x2').classList.add('active');
         document.getElementById('layout-3x3').classList.remove('active');
+        document.getElementById('layout-4x4').classList.remove('active');
     });
     document.getElementById('layout-3x3').addEventListener('click', () => {
         setLayout(9);
         document.getElementById('layout-3x3').classList.add('active');
         document.getElementById('layout-2x2').classList.remove('active');
+        document.getElementById('layout-4x4').classList.remove('active');
+    });
+    document.getElementById('layout-4x4').addEventListener('click', () => {
+        setLayout(16);
+        document.getElementById('layout-4x4').classList.add('active');
+        document.getElementById('layout-2x2').classList.remove('active');
+        document.getElementById('layout-3x3').classList.remove('active');
     });
 
     // 清空ボタン
@@ -43,8 +68,52 @@ function setupEventListeners() {
     // 記憶ボタン
     document.getElementById('btn-save-group').addEventListener('click', saveGroup);
 
+    // 複製ボタン：現在のフレームのURLをクリップボードにコピー
+    document.getElementById('btn-copy-urls').addEventListener('click', async () => {
+        const urls = [];
+        for (let i = 1; i <= screenCount; i++) {
+            const val = document.getElementById(`url${i}`)?.value || '';
+            if (val) urls.push(val);
+        }
+        if (urls.length === 0) {
+            alert('目前沒有影片可以複製');
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(urls.join('\n'));
+            const btn = document.getElementById('btn-copy-urls');
+            const orig = btn.textContent;
+            btn.textContent = '已複製!';
+            setTimeout(() => { btn.textContent = orig; }, 1500);
+        } catch (e) {
+            alert('無法寫入剪貼簿');
+        }
+    });
+
+    // 貼上ボタン
+    document.getElementById('btn-paste-urls').addEventListener('click', async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            const urls = text.split('\n')
+                .map(u => u.trim())
+                .filter(u => u && !u.startsWith('#') && u.startsWith('http'));
+
+            if (urls.length === 0) {
+                alert('剪貼簿中沒有找到有效的網址');
+                return;
+            }
+
+            urls.forEach((url, idx) => {
+                const frameId = idx + 1;
+                if (frameId <= screenCount) loadUrlToFrame(frameId, url);
+            });
+        } catch (e) {
+            alert('無法讀取剪貼簿，請確認瀏覽器已授權');
+        }
+    });
+
     // 各フレームのコントロール
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= 16; i++) {
         // + ボタン: URLオーバーレイを表示
         document.querySelector(`.plus-circle[data-frame="${i}"]`).addEventListener('click', () => {
             showInputOverlay(i);
@@ -99,23 +168,48 @@ function setupEventListeners() {
             e.preventDefault();
             card.classList.remove('drag-over');
 
-            // URL を取得（優先順位: uri-list > plain text > html 內的 href）
-            let url = e.dataTransfer.getData('text/uri-list') ||
+            // 多行 URL を取得（text/uri-list は改行区切りで複数URL含む場合あり）
+            console.log('[Drop] types:', [...e.dataTransfer.types]);
+            console.log('[Drop] uri-list:', e.dataTransfer.getData('text/uri-list'));
+            console.log('[Drop] plain:', e.dataTransfer.getData('text/plain'));
+            let raw = e.dataTransfer.getData('text/uri-list') ||
                       e.dataTransfer.getData('text/plain') || '';
 
-            if (!url) {
+            if (!raw) {
                 const html = e.dataTransfer.getData('text/html');
                 const match = html && html.match(/href="([^"]+)"/);
-                if (match) url = match[1];
+                if (match) raw = match[1];
             }
 
-            url = url.trim().split('\n')[0].trim(); // 多行時取第一行
-            if (url) loadUrlToFrame(i, url);
+            // # コメント行・空行を除外して URL リストを作る
+            const urls = raw.split('\n')
+                .map(u => u.trim())
+                .filter(u => u && !u.startsWith('#'));
+
+            if (urls.length === 0) return;
+
+            // 複数 URL は放り込んだフレームから順に各フレームへ割り当て
+            urls.forEach((url, offset) => {
+                const targetFrame = i + offset;
+                if (targetFrame <= screenCount) {
+                    loadUrlToFrame(targetFrame, url);
+                }
+            });
         });
     }
 
-    // メッセージ受信 (動画終了検知)
+    // メッセージ受信
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        // ページから複数URLを受信して各フレームに割り当て
+        if (request.action === "loadUrlsToPanel") {
+            const urls = request.urls || [];
+            autoSelectLayout(urls.length);
+            urls.forEach((url, idx) => {
+                const frameId = idx + 1;
+                if (frameId <= screenCount) loadUrlToFrame(frameId, url);
+            });
+            return;
+        }
         if (request.action === "videoEnded") {
             const frameId = parseInt(request.frameId);
             if (frameId && isAutoPlay) {
@@ -131,19 +225,32 @@ function setupEventListeners() {
 }
 
 function loadSettings() {
-    chrome.storage.local.get(['videoList', 'nextGlobalIndex', 'screenCount', 'savedGroups'], (data) => {
+    chrome.storage.local.get(['videoList', 'nextGlobalIndex', 'screenCount', 'savedGroups', 'pendingUrls'], (data) => {
         if (data.videoList) videoList = data.videoList;
         if (data.nextGlobalIndex !== undefined) nextGlobalIndex = data.nextGlobalIndex;
         if (data.screenCount) screenCount = data.screenCount;
         if (data.savedGroups) savedGroups = data.savedGroups;
 
-        const is3x3 = screenCount === 9;
-        document.getElementById('layout-2x2').classList.toggle('active', !is3x3);
-        document.getElementById('layout-3x3').classList.toggle('active', is3x3);
+        document.getElementById('layout-2x2').classList.toggle('active', screenCount === 4);
+        document.getElementById('layout-3x3').classList.toggle('active', screenCount === 9);
+        document.getElementById('layout-4x4').classList.toggle('active', screenCount === 16);
 
         setLayout(screenCount);
         renderVideoList();
         renderGroups();
+
+        // ページから送られた pendingUrls があれば読み込む
+        if (data.pendingUrls && data.pendingUrls.length > 0) {
+            const urls = data.pendingUrls;
+            chrome.storage.local.remove('pendingUrls');
+            autoSelectLayout(urls.length);
+            setTimeout(() => {
+                urls.forEach((url, idx) => {
+                    const frameId = idx + 1;
+                    if (frameId <= screenCount) loadUrlToFrame(frameId, url);
+                });
+            }, 600);
+        }
     });
 }
 
@@ -193,10 +300,10 @@ function loadGroup(id) {
 
     // レイアウトが違う場合は切り替え
     if (group.screenCount !== screenCount) {
-        const is3x3 = group.screenCount === 9;
         setLayout(group.screenCount);
-        document.getElementById('layout-2x2').classList.toggle('active', !is3x3);
-        document.getElementById('layout-3x3').classList.toggle('active', is3x3);
+        document.getElementById('layout-2x2').classList.toggle('active', group.screenCount === 4);
+        document.getElementById('layout-3x3').classList.toggle('active', group.screenCount === 9);
+        document.getElementById('layout-4x4').classList.toggle('active', group.screenCount === 16);
     }
 
     setTimeout(() => {
@@ -283,7 +390,7 @@ function setLayout(count) {
     const grid = document.getElementById('video-grid');
     grid.className = `video-grid count-${count}`;
 
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= 16; i++) {
         const wrapper = document.getElementById(`wrapper${i}`);
         if (i <= count) {
             wrapper.style.display = 'flex';
@@ -666,7 +773,7 @@ function stopAllVideos() {
     isGlobalLoading = false;
     console.log("[Queue] Algorithm reset (Stop All).");
 
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= 16; i++) {
         stopFrame(i);
     }
 }

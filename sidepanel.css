@@ -89,6 +89,22 @@ body {
     color: #fff;
 }
 
+.btn-paste {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-dim);
+    border-radius: var(--r);
+    padding: 3px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-paste:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    color: var(--text);
+}
+
 .topbar-right {
     display: flex;
     align-items: center;
@@ -203,6 +219,11 @@ body {
 .video-grid.count-9 {
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 1fr 1fr 1fr;
+}
+
+.video-grid.count-16 {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
 }
 
 /* ── Screen Card ─────────────────────────── */

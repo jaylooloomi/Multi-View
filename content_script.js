@@ -218,7 +218,7 @@ if (isSubscreen) {
         setInterval(setupVideoListener, 1000); // videoタグが生成されるのを待つ
     }
 
-    // 全プラットフォーム共通: video ended 監視 + 遅延ミュート自動再生
+    // 全プラットフォーム共通: video ended 監視
     if (!location.hostname.includes("youtube.com")) {
         const setupVideoListenerGeneric = () => {
             const video = document.querySelector('video');
@@ -233,6 +233,11 @@ if (isSubscreen) {
                     });
                 });
 
+                // embed iframe 環境で強制ミュートされる場合があるため unmute する
+                video.muted = false;
+                video.addEventListener("volumechange", () => {
+                    if (video.muted) video.muted = false;
+                });
             }
         };
         setInterval(setupVideoListenerGeneric, 1000);
@@ -284,7 +289,151 @@ if (isSubscreen) {
     });
 }
 
-// --- 3. メッセージハンドラ (リスト取得用) ---
+// --- 3. 選択モード UI (サイドパネル外のページに注入) ---
+if (!isSubscreen) {
+    let selectMode = false;
+    let selectedUrls = [];
+
+    // ビデオリンクかどうか判定
+    const isVideoLink = (href) => {
+        if (!href) return false;
+        return /\/(video|watch|embed|live)\b|viewkey=|\/videos\/\d+/i.test(href);
+    };
+
+    // URLを正規化（フルURLにする）
+    const resolveUrl = (href) => {
+        try { return new URL(href, location.href).href; } catch { return href; }
+    };
+
+    // 浮動ツールバーを作成
+    const toolbar = document.createElement('div');
+    toolbar.id = '__mv_toolbar__';
+    toolbar.style.cssText = `
+        position: fixed; bottom: 20px; right: 20px; z-index: 2147483647;
+        display: flex; align-items: center; gap: 8px;
+        background: rgba(13,13,13,0.92); border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px; padding: 8px 12px;
+        font-family: -apple-system, sans-serif; font-size: 12px; color: #f0f0f0;
+        backdrop-filter: blur(8px); box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        user-select: none;
+    `;
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.textContent = '☑ 選擇';
+    toggleBtn.style.cssText = `
+        background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+        color: #f0f0f0; border-radius: 5px; padding: 4px 10px; font-size: 11px;
+        cursor: pointer; transition: background 0.15s;
+    `;
+
+    const countLabel = document.createElement('span');
+    countLabel.textContent = '已選 0';
+    countLabel.style.cssText = 'color: #a78bfa; font-size: 11px; display: none;';
+
+    const sendBtn = document.createElement('button');
+    sendBtn.textContent = '送入面板 →';
+    sendBtn.style.cssText = `
+        background: #c0392b; border: none; color: #fff; border-radius: 5px;
+        padding: 4px 12px; font-size: 11px; cursor: pointer; display: none;
+        transition: background 0.15s;
+    `;
+
+    const clearBtn = document.createElement('button');
+    clearBtn.textContent = '清除';
+    clearBtn.style.cssText = `
+        background: transparent; border: 1px solid rgba(255,255,255,0.15);
+        color: #888; border-radius: 5px; padding: 4px 8px; font-size: 11px;
+        cursor: pointer; display: none;
+    `;
+
+    toolbar.appendChild(toggleBtn);
+    toolbar.appendChild(countLabel);
+    toolbar.appendChild(sendBtn);
+    toolbar.appendChild(clearBtn);
+
+    const appendToolbar = () => {
+        if (document.body) {
+            document.body.appendChild(toolbar);
+        } else {
+            document.addEventListener('DOMContentLoaded', () => document.body.appendChild(toolbar));
+        }
+    };
+    appendToolbar();
+
+    const updateUI = () => {
+        const n = selectedUrls.length;
+        countLabel.textContent = `已選 ${n}`;
+        countLabel.style.display = n > 0 ? 'inline' : 'none';
+        sendBtn.style.display = n > 0 ? 'inline-block' : 'none';
+        clearBtn.style.display = n > 0 ? 'inline-block' : 'none';
+        toggleBtn.style.background = selectMode
+            ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.08)';
+    };
+
+    // サムネイルのハイライト
+    const highlightEl = (el, on) => {
+        el.style.outline = on ? '3px solid #a78bfa' : '';
+        el.style.outlineOffset = on ? '2px' : '';
+        el.style.borderRadius = on ? '4px' : '';
+    };
+
+    // ページ内のビデオリンクをクリックインターセプト
+    document.addEventListener('click', (e) => {
+        if (!selectMode) return;
+        const link = e.target.closest('a[href]');
+        if (!link || !isVideoLink(link.getAttribute('href'))) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const url = resolveUrl(link.getAttribute('href'));
+        const idx = selectedUrls.indexOf(url);
+        if (idx === -1) {
+            selectedUrls.push(url);
+            highlightEl(link, true);
+        } else {
+            selectedUrls.splice(idx, 1);
+            highlightEl(link, false);
+        }
+        updateUI();
+    }, true);
+
+    toggleBtn.addEventListener('click', () => {
+        selectMode = !selectMode;
+        if (!selectMode) {
+            // 選択解除時にハイライトをクリア
+            document.querySelectorAll('a[href]').forEach(a => highlightEl(a, false));
+        }
+        updateUI();
+    });
+
+    clearBtn.addEventListener('click', () => {
+        document.querySelectorAll('a[href]').forEach(a => highlightEl(a, false));
+        selectedUrls = [];
+        updateUI();
+    });
+
+    sendBtn.addEventListener('click', () => {
+        if (selectedUrls.length === 0) return;
+        try {
+            chrome.runtime.sendMessage({
+                action: "loadUrlsToPanel",
+                urls: selectedUrls
+            });
+        } catch (e) {
+            // 擴充功能已重新載入，提示使用者刷新頁面
+            alert('擴充功能已更新，請重新整理此頁面後再試');
+            return;
+        }
+        // リセット
+        document.querySelectorAll('a[href]').forEach(a => highlightEl(a, false));
+        selectedUrls = [];
+        selectMode = false;
+        updateUI();
+    });
+}
+
+// --- 4. メッセージハンドラ (リスト取得用) ---
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getVideos") {
         const videos = scrapeSubscriptionVideos();
