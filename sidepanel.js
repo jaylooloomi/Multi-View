@@ -60,35 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function setupEventListeners() {
     // Layout toggle buttons
-    document.getElementById('layout-2x2').addEventListener('click', () => {
-        setLayout(4);
-        document.getElementById('layout-2x2').classList.add('active');
-        document.getElementById('layout-3x3').classList.remove('active');
-        document.getElementById('layout-4x4').classList.remove('active');
-        resetGlobalControls();
-    });
-    document.getElementById('layout-3x3').addEventListener('click', () => {
-        setLayout(9);
-        document.getElementById('layout-3x3').classList.add('active');
-        document.getElementById('layout-2x2').classList.remove('active');
-        document.getElementById('layout-4x4').classList.remove('active');
-        resetGlobalControls();
-    });
-    document.getElementById('layout-4x4').addEventListener('click', () => {
-        setLayout(16);
-        document.getElementById('layout-4x4').classList.add('active');
-        document.getElementById('layout-2x2').classList.remove('active');
-        document.getElementById('layout-3x3').classList.remove('active');
-        resetGlobalControls();
-    });
-    document.getElementById('layout-5x5').addEventListener('click', () => {
-        setLayout(25);
-        document.getElementById('layout-5x5').classList.add('active');
-        document.getElementById('layout-2x2').classList.remove('active');
-        document.getElementById('layout-3x3').classList.remove('active');
-        document.getElementById('layout-4x4').classList.remove('active');
-        resetGlobalControls();
-    });
+    const layoutBtns = ['layout-2x2', 'layout-3x3', 'layout-4x4', 'layout-5x5'];
+    const setActiveLayout = (activeId) => {
+        layoutBtns.forEach(id => document.getElementById(id).classList.toggle('active', id === activeId));
+    };
+    document.getElementById('layout-2x2').addEventListener('click', () => { setLayout(4);  setActiveLayout('layout-2x2'); resetGlobalControls(); });
+    document.getElementById('layout-3x3').addEventListener('click', () => { setLayout(9);  setActiveLayout('layout-3x3'); resetGlobalControls(); });
+    document.getElementById('layout-4x4').addEventListener('click', () => { setLayout(16); setActiveLayout('layout-4x4'); resetGlobalControls(); });
+    document.getElementById('layout-5x5').addEventListener('click', () => { setLayout(25); setActiveLayout('layout-5x5'); resetGlobalControls(); });
 
     // Clear all button
     document.getElementById('btn-clear-all').addEventListener('click', stopAllVideos);
