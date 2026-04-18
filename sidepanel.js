@@ -85,6 +85,33 @@ function setupEventListeners() {
         document.querySelector(`.stop-btn[data-frame="${i}"]`).addEventListener('click', () => {
             stopFrame(i);
         });
+
+        // ドラッグ&ドロップ
+        const card = document.getElementById(`wrapper${i}`);
+        card.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            card.classList.add('drag-over');
+        });
+        card.addEventListener('dragleave', () => {
+            card.classList.remove('drag-over');
+        });
+        card.addEventListener('drop', (e) => {
+            e.preventDefault();
+            card.classList.remove('drag-over');
+
+            // URL を取得（優先順位: uri-list > plain text > html 內的 href）
+            let url = e.dataTransfer.getData('text/uri-list') ||
+                      e.dataTransfer.getData('text/plain') || '';
+
+            if (!url) {
+                const html = e.dataTransfer.getData('text/html');
+                const match = html && html.match(/href="([^"]+)"/);
+                if (match) url = match[1];
+            }
+
+            url = url.trim().split('\n')[0].trim(); // 多行時取第一行
+            if (url) loadUrlToFrame(i, url);
+        });
     }
 
     // メッセージ受信 (動画終了検知)

@@ -31,7 +31,7 @@ async function setupNetRequestRules() {
       },
       condition: {
         // sub_frame限定で適用（通常のタブ再生を邪魔しない）
-        regexFilter: "^https?://.*(youtube\\.com|googlevideo\\.com|nicovideo\\.jp|tiktok\\.com|twitch\\.tv|doubleclick\\.net|pornhub\\.com)/.*",
+        regexFilter: "^https?://.*(youtube\\.com|googlevideo\\.com|nicovideo\\.jp|tiktok\\.com|twitch\\.tv|doubleclick\\.net|pornhub\\.com|rule34video\\.com|ashemaletube\\.com|xgroovy\\.com)/.*",
         resourceTypes: ["sub_frame", "xmlhttprequest"],
       },
     }
