@@ -15,7 +15,7 @@ async function setupNetRequestRules() {
       },
     },
     {
-      id: 2, // セキュリティ制限の強制解除 (サイドパネル内iframe用)
+      id: 2, // 主要プラットフォーム用
       priority: 100,
       action: {
         type: "modifyHeaders",
@@ -30,8 +30,27 @@ async function setupNetRequestRules() {
         ],
       },
       condition: {
-        // sub_frame限定で適用（通常のタブ再生を邪魔しない）
-        regexFilter: "^https?://.*(youtube\\.com|googlevideo\\.com|nicovideo\\.jp|tiktok\\.com|twitch\\.tv|doubleclick\\.net|pornhub\\.com|rule34video\\.com|ashemaletube\\.com|xgroovy\\.com)/.*",
+        regexFilter: "^https?://.*(youtube\\.com|googlevideo\\.com|nicovideo\\.jp|tiktok\\.com|twitch\\.tv|doubleclick\\.net|pornhub\\.com)/.*",
+        resourceTypes: ["sub_frame", "xmlhttprequest"],
+      },
+    },
+    {
+      id: 3, // 追加サイト用
+      priority: 100,
+      action: {
+        type: "modifyHeaders",
+        responseHeaders: [
+          { header: "X-Frame-Options", operation: "remove" },
+          { header: "Content-Security-Policy", operation: "remove" },
+          { header: "Cross-Origin-Embedder-Policy", operation: "remove" },
+          { header: "Cross-Origin-Resource-Policy", operation: "remove" },
+          { header: "Cross-Origin-Opener-Policy", operation: "remove" },
+          { header: "X-WebKit-CSP", operation: "remove" },
+          { header: "X-Content-Security-Policy", operation: "remove" }
+        ],
+      },
+      condition: {
+        regexFilter: "^https?://.*(rule34video\\.com|ashemaletube\\.com|xgroovy\\.com)/.*",
         resourceTypes: ["sub_frame", "xmlhttprequest"],
       },
     }
@@ -47,7 +66,7 @@ async function setupNetRequestRules() {
     });
     console.log("DNR rules optimized for side panel.");
   } catch (error) {
-    console.error("Failed to update DNR rules:", error);
+    console.error("Failed to update DNR rules:", error.message, error);
   }
 }
 
