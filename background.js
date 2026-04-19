@@ -35,6 +35,24 @@ async function setupNetRequestRules() {
       },
     },
     {
+      id: 4, // Twitch: spoof Referer so parent=localhost check passes
+      // player.twitch.tv validates that document.referrer matches the ?parent= param.
+      // Chrome extensions send chrome-extension://... as referrer which fails the check.
+      // Setting Referer to https://localhost/ makes it match parent=localhost.
+      priority: 200,
+      action: {
+        type: "modifyHeaders",
+        requestHeaders: [
+          { header: "Referer", operation: "set", value: "https://localhost/" },
+          { header: "Origin", operation: "set", value: "https://localhost" }
+        ],
+      },
+      condition: {
+        regexFilter: "^https://player\\.twitch\\.tv/",
+        resourceTypes: ["sub_frame"],
+      },
+    },
+    {
       id: 3, // For additional sites
       priority: 100,
       action: {

@@ -38,12 +38,23 @@ body {
     background: var(--topbar-bg);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* hide scrollbar but keep functionality */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap;
+    gap: 6px;
 }
+
+.topbar::-webkit-scrollbar { display: none; }
 
 .topbar-left {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
 }
 
 .locale-select {
@@ -838,11 +849,13 @@ body.theme-light #mv-toast { color: #111; }
     border: 1px solid rgba(255,255,255,0.15);
     color: var(--text-dim);
     border-radius: var(--r);
-    padding: 0 6px;
+    padding: 0;
     font-size: 13px;
     cursor: pointer;
     height: 20px;
     min-height: 20px;
+    width: 26px;
+    min-width: 26px;
     line-height: 1;
     display: inline-flex;
     align-items: center;
