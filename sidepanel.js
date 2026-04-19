@@ -633,7 +633,10 @@ function openGroupEditModal(id) {
         const delBtn = document.createElement('button');
         delBtn.className = 'modal-url-del';
         delBtn.textContent = '×';
-        delBtn.addEventListener('click', () => row.remove());
+        delBtn.addEventListener('click', () => {
+            if (urlList.querySelectorAll('.modal-url-row').length <= 1) return;
+            row.remove();
+        });
 
         row.appendChild(input);
         row.appendChild(delBtn);
