@@ -87,10 +87,26 @@ function setupEventListeners() {
     // Clear all button
     document.getElementById('btn-clear-all').addEventListener('click', stopAllVideos);
 
-    // Open in new tab button — open app in tab then close the side panel
+    // Open in new tab button — snapshot current frames, open tab, close side panel
     document.getElementById('btn-open-tab').addEventListener('click', () => {
-        chrome.tabs.create({ url: chrome.runtime.getURL('sidepanel.html') });
-        window.close();
+        // Collect all currently loaded URLs in order
+        const urls = [];
+        for (let i = 1; i <= screenCount; i++) {
+            urls.push(document.getElementById(`url${i}`)?.value || '');
+        }
+        const hasAny = urls.some(u => u);
+
+        const doOpen = () => {
+            chrome.tabs.create({ url: chrome.runtime.getURL('sidepanel.html') });
+            window.close();
+        };
+
+        if (hasAny) {
+            // Save snapshot so the new tab can restore it
+            chrome.storage.local.set({ tabSnapshot: { urls, screenCount } }, doOpen);
+        } else {
+            doOpen();
+        }
     });
 
     // Save group button
@@ -373,7 +389,7 @@ function setupEventListeners() {
 }
 
 function loadSettings() {
-    chrome.storage.local.get(['videoList', 'nextGlobalIndex', 'screenCount', 'savedGroups', 'pendingUrls'], (data) => {
+    chrome.storage.local.get(['videoList', 'nextGlobalIndex', 'screenCount', 'savedGroups', 'pendingUrls', 'tabSnapshot'], (data) => {
         if (data.videoList) videoList = data.videoList;
         if (data.nextGlobalIndex !== undefined) nextGlobalIndex = data.nextGlobalIndex;
         if (data.screenCount) screenCount = data.screenCount;
@@ -387,6 +403,24 @@ function loadSettings() {
         setLayout(screenCount);
         renderVideoList();
         renderGroups();
+
+        // Restore frame snapshot from "open in new tab" action (takes priority)
+        if (data.tabSnapshot && data.tabSnapshot.urls) {
+            const { urls, screenCount: snapshotCount } = data.tabSnapshot;
+            chrome.storage.local.remove('tabSnapshot');
+            setLayout(snapshotCount);
+            const layoutBtnId = { 4: 'layout-2x2', 9: 'layout-3x3', 16: 'layout-4x4', 25: 'layout-5x5' }[snapshotCount];
+            if (layoutBtnId) {
+                ['layout-2x2','layout-3x3','layout-4x4','layout-5x5'].forEach(id =>
+                    document.getElementById(id).classList.toggle('active', id === layoutBtnId));
+            }
+            setTimeout(() => {
+                urls.forEach((url, idx) => {
+                    if (url) loadUrlToFrame(idx + 1, url);
+                });
+            }, 600);
+            return;
+        }
 
         // If pendingUrls were sent from the page, load them
         if (data.pendingUrls && data.pendingUrls.length > 0) {
