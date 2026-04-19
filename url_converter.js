@@ -13,10 +13,11 @@ window.convertToEmbedUrl = (rawText, frameId) => {
         url = genericIframeMatch[1];
 
     // YouTube  (/watch, /live, youtu.be)
+    // IMPORTANT: keep watch?v= format — /embed/ triggers Error 153 in the side-panel context.
     } else if (/youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\//i.test(text)) {
         const m = text.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/)([^?&"'\s/]+)/i);
         if (m) {
-            url = `https://www.youtube.com/embed/${m[1]}`;
+            url = `https://www.youtube.com/watch?v=${m[1]}`;
             embedType = 'youtube';
         }
 
