@@ -50,7 +50,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.15);
     color: var(--text-dim);
     border-radius: var(--r);
-    padding: 2px 4px;
+    padding: 0 4px;
     font-size: 11px;
     cursor: pointer;
     outline: none;
@@ -89,12 +89,24 @@ body {
     gap: 2px;
 }
 
+/* ── Shared topbar button height ─────────────── */
+.btn-layout, .btn-paste, .btn-tab, .btn-memory, .btn-clear, .locale-select {
+    height: 22px;
+    min-height: 22px;
+    box-sizing: border-box;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
 .btn-layout {
     background: transparent;
     border: none;
     color: var(--text-dim);
     border-radius: 3px;
-    padding: 2px 10px;
+    padding: 0 10px;
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
@@ -117,7 +129,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.15);
     color: var(--text-dim);
     border-radius: var(--r);
-    padding: 3px 10px;
+    padding: 0 10px;
     font-size: 11px;
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s;
@@ -194,7 +206,7 @@ body {
     border: 1px solid rgba(30, 136, 229, 0.3);
     color: #90caf9;
     border-radius: var(--r);
-    padding: 3px 10px;
+    padding: 0 10px;
     font-size: 11px;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
@@ -210,7 +222,7 @@ body {
     border: 1px solid rgba(139, 92, 246, 0.3);
     color: #a78bfa;
     border-radius: var(--r);
-    padding: 3px 10px;
+    padding: 0 10px;
     font-size: 11px;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
@@ -226,7 +238,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.12);
     color: var(--text-dim);
     border-radius: var(--r);
-    padding: 3px 10px;
+    padding: 0 10px;
     font-size: 11px;
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s;
