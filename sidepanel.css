@@ -249,6 +249,30 @@ body {
     border-color: rgba(30, 136, 229, 0.55);
 }
 
+/* ── Buy Me a Coffee button ─────────────────── */
+.btn-coffee {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    min-width: 26px;
+    height: 20px;
+    font-size: 14px;
+    line-height: 1;
+    text-decoration: none;
+    border-radius: var(--r);
+    border: 1px solid rgba(255, 183, 77, 0.35);
+    background: rgba(255, 183, 77, 0.08);
+    opacity: 0.75;
+    transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+}
+.btn-coffee:hover {
+    opacity: 1;
+    background: rgba(255, 183, 77, 0.2);
+    border-color: rgba(255, 183, 77, 0.6);
+}
+
 .btn-memory {
     background: rgba(139, 92, 246, 0.15);
     border: 1px solid rgba(139, 92, 246, 0.3);
@@ -862,7 +886,7 @@ body.theme-light .group-chip.group-chip-active .group-chip-del {
 body.theme-light .modal-backdrop { background: rgba(0,0,0,0.35); }
 body.theme-light .modal-box { background: #f0f0f0; border-color: rgba(0,0,0,0.2); color: #111; }
 body.theme-light .modal-url-input { background: #fff; color: #111; border-color: rgba(0,0,0,0.2); }
-body.theme-light #mv-toast { color: #111; }
+/* toast: same dark style in both light and dark mode — no override needed */
 
 /* plus-circle: dark uses white/transparent, light needs black/transparent */
 body.theme-light .plus-circle {

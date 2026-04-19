@@ -110,9 +110,14 @@ async function setupNetRequestRules() {
   }
 }
 
+// onInstalled: fires when extension is first installed or updated to a new version.
+// onStartup:   fires when Chrome starts with the extension already installed.
+// Dynamic rules persist across service-worker restarts, so no immediate call is needed.
+// Calling setupNetRequestRules() immediately AND inside onInstalled causes a race
+// condition (two concurrent getDynamicRules → updateDynamicRules flows) that
+// triggers "Failed to update DNR rules".
 chrome.runtime.onInstalled.addListener(setupNetRequestRules);
 chrome.runtime.onStartup.addListener(setupNetRequestRules);
-setupNetRequestRules();
 
 // Configure the side panel to open when the icon is clicked
 chrome.sidePanel
