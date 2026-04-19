@@ -894,7 +894,11 @@ body.theme-light .url-input { background: #f0f0f0; color: #111; border-color: rg
 body.theme-light .url-input::placeholder { color: #888; }
 body.theme-light .groups-bar { background: var(--topbar-bg); }
 body.theme-light .group-chip { border-color: rgba(0,0,0,0.18); background: rgba(0,0,0,0.06); }
+body.theme-light .group-chip:hover { border-color: rgba(103,58,183,0.45); }
 body.theme-light .group-chip-load, body.theme-light .group-chip-edit, body.theme-light .group-chip-del { color: #333; background: transparent; }
+body.theme-light .group-chip-load:hover { color: #512da8; }
+body.theme-light .group-chip-edit:hover { color: #512da8; background: rgba(103,58,183,0.10); }
+body.theme-light .group-chip-del:hover  { color: #c62828; background: rgba(239,68,68,0.10); }
 /* Active group chip in light mode: solid purple tint + dark text for readability */
 body.theme-light .group-chip.group-chip-active {
     border-color: rgba(103,58,183,0.9);
