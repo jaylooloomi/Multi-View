@@ -90,15 +90,26 @@ body {
 }
 
 /* ── Shared topbar button height ─────────────── */
-.btn-layout, .btn-paste, .btn-tab, .btn-memory, .btn-clear, .locale-select {
+.btn-layout, .btn-paste, .btn-tab, .btn-memory, .btn-clear {
     height: 22px;
     min-height: 22px;
     box-sizing: border-box;
-    line-height: 1;
+    line-height: 22px;
+    padding-top: 0;
+    padding-bottom: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     white-space: nowrap;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.locale-select {
+    height: 22px;
+    min-height: 22px;
+    box-sizing: border-box;
+    line-height: 22px;
 }
 
 .btn-layout {
@@ -263,7 +274,9 @@ body {
 
 .group-chip {
     display: flex;
-    align-items: center;
+    align-items: stretch;
+    height: 24px;
+    box-sizing: border-box;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
@@ -280,10 +293,16 @@ body {
     border: none;
     color: var(--text-dim);
     font-size: 11px;
-    padding: 3px 8px 3px 11px;
+    padding: 0 8px 0 11px;
     cursor: pointer;
     transition: color 0.15s;
     white-space: nowrap;
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    line-height: 22px;
+    display: flex;
+    align-items: center;
 }
 
 .group-chip-load:hover {
@@ -296,9 +315,14 @@ body {
     border-left: 1px solid rgba(255, 255, 255, 0.08);
     color: var(--text-muted);
     font-size: 13px;
-    padding: 2px 7px;
+    padding: 0 7px;
     cursor: pointer;
-    line-height: 1;
+    line-height: 22px;
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
     transition: color 0.15s, background 0.15s;
 }
 
@@ -715,9 +739,14 @@ body {
     border-left: 1px solid rgba(255,255,255,0.08);
     color: var(--text-muted);
     font-size: 12px;
-    padding: 2px 7px;
+    padding: 0 7px;
     cursor: pointer;
-    line-height: 1;
+    line-height: 22px;
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
     transition: color 0.15s, background 0.15s;
 }
 
