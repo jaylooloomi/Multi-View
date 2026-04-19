@@ -843,6 +843,60 @@ body.theme-light .modal-box { background: #f0f0f0; border-color: rgba(0,0,0,0.2)
 body.theme-light .modal-url-input { background: #fff; color: #111; border-color: rgba(0,0,0,0.2); }
 body.theme-light #mv-toast { color: #111; }
 
+/* plus-circle: dark uses white/transparent, light needs black/transparent */
+body.theme-light .plus-circle {
+    border-color: rgba(0,0,0,0.25);
+    color: rgba(0,0,0,0.35);
+}
+body.theme-light .plus-circle:hover {
+    border-color: rgba(0,0,0,0.5);
+    color: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.05);
+}
+
+/* cell-label: dark uses near-invisible white, light needs visible dark */
+body.theme-light .cell-label {
+    color: rgba(0,0,0,0.35);
+}
+
+/* btn-open-tab (⧉ 分頁): dark is blue-tinted, light needs stronger contrast */
+body.theme-light .btn-tab {
+    background: rgba(30,136,229,0.1);
+    border-color: rgba(30,136,229,0.4);
+    color: #1565c0;
+}
+body.theme-light .btn-tab:hover {
+    background: rgba(30,136,229,0.2);
+    border-color: rgba(30,136,229,0.7);
+}
+
+/* btn-save-group (記憶): dark is purple-tinted, light needs stronger contrast */
+body.theme-light .btn-memory {
+    background: rgba(103,58,183,0.1);
+    border-color: rgba(103,58,183,0.4);
+    color: #4527a0;
+}
+body.theme-light .btn-memory:hover {
+    background: rgba(103,58,183,0.2);
+    border-color: rgba(103,58,183,0.6);
+}
+
+/* btn-clear-all (清空): dark uses faint white border, light needs visible border */
+body.theme-light .btn-clear {
+    border-color: rgba(0,0,0,0.2);
+    color: #555;
+}
+body.theme-light .btn-clear:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* btn-toggle-groups (▲/▼) */
+body.theme-light .btn-toggle-groups {
+    border-color: rgba(0,0,0,0.2);
+    color: #555;
+}
+
 /* ── Theme Toggle Button ─────────────────── */
 .btn-theme-toggle {
     background: transparent;

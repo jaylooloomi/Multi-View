@@ -114,11 +114,10 @@ window.convertToEmbedUrl = (rawText, frameId) => {
             urlObj.searchParams.set('origin', window.location.origin);
             urlObj.searchParams.set('autoplay', '0');
         }
-        // Twitch already has autoplay=false in the URL; skip subscreen/frameId params
-        // to avoid breaking Twitch's embed URL format.
-        if (embedType === 'twitch') {
-            return url; // return the raw Twitch URL without extra params
-        }
+        // Twitch: add subscreen=1 so content_script.js suppresses the toolbar injection.
+        // The other extra params (enablejsapi, origin, autoplay) are NOT added because
+        // Twitch does not recognise them and they do not break the URL.
+        // autoplay=false is already embedded in the URL string itself.
         // For generic / xhamster / pornhub etc., don't add autoplay either —
         // their embed players default to click-to-play which is the desired behaviour.
 
