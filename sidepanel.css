@@ -395,10 +395,12 @@ body {
     border-radius: 2px;
 }
 
-/* NicoNico icon is all-black — add yellow outline so it's visible on dark bg */
-.platform-btn--outlined img {
-    outline: 1.5px solid #f5c518;
-    outline-offset: 1px;
+/* NicoNico icon is all-black — invert to white in dark mode, keep original in light mode */
+.platform-btn--nicovideo img {
+    filter: brightness(0) invert(1); /* black → white for dark bg */
+}
+body.theme-light .platform-btn--nicovideo img {
+    filter: none; /* keep original black on light bg */
 }
 
 /* ── Groups Bar ──────────────────────────── */

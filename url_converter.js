@@ -73,6 +73,12 @@ window.convertToEmbedUrl = (rawText, frameId) => {
         const m = text.match(/odysee\.com\/(.+)/i);
         if (m) url = `https://odysee.com/$/embed/${m[1]}`;
 
+    // Rule34Video — embed format: rule34video.com/embed/VIDEO_ID
+    // Video page:  rule34video.com/videos/VIDEO_ID/title/
+    } else if (/rule34video\.com\/videos\/\d+/i.test(text)) {
+        const m = text.match(/rule34video\.com\/videos\/(\d+)/i);
+        if (m) url = `https://rule34video.com/embed/${m[1]}`;
+
     // Twitch — use plain iframe.src with parent=localhost for extension contexts
     } else if (/twitch\.tv\/|clips\.twitch\.tv\//i.test(text)) {
         embedType = 'twitch';
