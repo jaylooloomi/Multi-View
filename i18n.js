@@ -150,6 +150,8 @@ function setLocale(locale) {
   _locale = locale;
   chrome.storage.local.set({ locale: locale });
   applyI18n();
+  // Re-render dynamic group chips if sidepanel.js has loaded renderGroups
+  if (typeof renderGroups === 'function') renderGroups();
 }
 
 function getLocale() { return _locale; }

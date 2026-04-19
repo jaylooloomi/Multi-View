@@ -476,6 +476,7 @@ function saveGroup() {
     const group = {
         id: Date.now(),
         name: t('default_group_name', savedGroups.length + 1),
+        isAutoName: true,
         urls: urls,
         screenCount: screenCount
     };
@@ -512,8 +513,13 @@ function loadGroup(id) {
 
 function deleteGroup(id) {
     savedGroups = savedGroups.filter(g => g.id !== id);
-    // Reassign names
-    savedGroups.forEach((g, idx) => { g.name = t('default_group_name', idx + 1); });
+    // Reassign auto-names only for groups that still have auto names
+    savedGroups.forEach((g, idx) => {
+        if (g.isAutoName !== false) {
+            g.isAutoName = true;
+            g.name = t('default_group_name', idx + 1);
+        }
+    });
     chrome.storage.local.set({ savedGroups });
     renderGroups();
 }
@@ -522,13 +528,17 @@ function renderGroups() {
     const bar = document.getElementById('groups-bar');
     bar.innerHTML = '';
 
-    savedGroups.forEach(group => {
+    savedGroups.forEach((group, idx) => {
         const chip = document.createElement('div');
         chip.className = 'group-chip';
 
+        const displayName = group.isAutoName
+            ? t('default_group_name', idx + 1)
+            : group.name;
+
         const loadBtn = document.createElement('button');
         loadBtn.className = 'group-chip-load';
-        loadBtn.textContent = group.name;
+        loadBtn.textContent = displayName;
         loadBtn.title = group.urls.filter(u => u).join('\n');
         loadBtn.addEventListener('click', () => loadGroup(group.id));
 
@@ -628,6 +638,7 @@ function openGroupEditModal(id) {
             .filter(u => u);
 
         group.name = newName;
+        group.isAutoName = false; // user explicitly named it
         group.urls = newUrls;
         chrome.storage.local.set({ savedGroups });
         renderGroups();
