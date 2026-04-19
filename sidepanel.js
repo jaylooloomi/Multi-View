@@ -466,7 +466,7 @@ function saveSettings() {
 
 function saveGroup() {
     if (savedGroups.length >= 20) {
-        alert(t('alert_group_limit'));
+        showToast(t('alert_group_limit'), 'warn');
         return;
     }
 
@@ -476,7 +476,7 @@ function saveGroup() {
     }
 
     if (urls.every(u => !u)) {
-        alert(t('alert_group_none'));
+        showToast(t('alert_group_none'), 'warn');
         return;
     }
 
