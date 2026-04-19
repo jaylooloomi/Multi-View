@@ -30,6 +30,26 @@ window.convertToEmbedUrl = (rawText, frameId) => {
                         if (phMatch) {
                             url = `https://www.pornhub.com/embed/${phMatch[1]}`;
                         }
+                        // XHamster: https://xhamster.com/videos/title-12345678 → xembed.php?video=12345678
+                        const xhMatch = text.match(/xhamster(?:\.desi|\.com|\.one)?\/videos\/[^?#]*?-(\d+)(?:[/?#]|$)/i);
+                        if (xhMatch) {
+                            url = `https://xhamster.com/xembed.php?video=${xhMatch[1]}`;
+                        }
+                        // XVideos: https://www.xvideos.com/video12345678/title → embedframe/12345678
+                        const xvMatch = text.match(/xvideos\.com\/video(\d+)/i);
+                        if (xvMatch) {
+                            url = `https://www.xvideos.com/embedframe/${xvMatch[1]}`;
+                        }
+                        // BitChute: https://www.bitchute.com/video/AbCdEf/ → /embed/AbCdEf/
+                        const btMatch = text.match(/bitchute\.com\/video\/([A-Za-z0-9]+)/i);
+                        if (btMatch) {
+                            url = `https://www.bitchute.com/embed/${btMatch[1]}/`;
+                        }
+                        // Odysee: https://odysee.com/@Ch:h/vid:h → /$/embed/@Ch:h/vid:h
+                        const odMatch = text.match(/odysee\.com\/((?![$]).+)/i);
+                        if (odMatch) {
+                            url = `https://odysee.com/$/embed/${odMatch[1]}`;
+                        }
                         // Twitch etc. omitted (add if needed)
                         const parentParam = 'localhost';
                         const twitchClipMatch = text.match(/(?:clips\.twitch\.tv\/|twitch\.tv\/\w+\/clip\/)([^?&"'\s/]+)/i);
