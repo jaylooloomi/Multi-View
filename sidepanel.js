@@ -74,6 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
+    // Locale switcher
+    document.getElementById('locale-select').addEventListener('change', (e) => {
+        setLocale(e.target.value);
+    });
+
     // Layout toggle buttons
     const layoutBtns = ['layout-2x2', 'layout-3x3', 'layout-4x4', 'layout-5x5'];
     const setActiveLayout = (activeId) => {
@@ -122,21 +127,21 @@ function setupEventListeners() {
             if (val) urls.push(val);
         }
         if (urls.length === 0) {
-            showToast('目前沒有影片可複製', 'warn');
+            showToast(t('toast_copy_none'), 'warn');
             return;
         }
         try {
             await navigator.clipboard.writeText(urls.join('\n'));
-            showToast(`已複製 ${urls.length} 個網址`, 'ok');
+            showToast(t('toast_copy_ok', urls.length), 'ok');
         } catch (e) {
-            showToast('無法寫入剪貼簿', 'error');
+            showToast(t('toast_copy_error'), 'error');
         }
     });
 
     // Quick save button: update the currently loaded group
     document.getElementById('btn-save-quick').addEventListener('click', () => {
         if (!currentGroupId) {
-            showToast('請先載入一個群組，再按儲存', 'warn');
+            showToast(t('toast_save_no_group'), 'warn');
             return;
         }
         const group = savedGroups.find(g => g.id === currentGroupId);
@@ -147,7 +152,7 @@ function setupEventListeners() {
             urls.push(document.getElementById(`url${i}`)?.value || '');
         }
         if (urls.every(u => !u)) {
-            showToast('目前沒有影片可儲存', 'warn');
+            showToast(t('toast_save_none'), 'warn');
             return;
         }
 
@@ -155,7 +160,7 @@ function setupEventListeners() {
         group.screenCount = screenCount;
         chrome.storage.local.set({ savedGroups });
         renderGroups();
-        showToast(`已儲存「${group.name}」`, 'ok');
+        showToast(t('toast_save_ok', group.name), 'ok');
     });
 
     // Compact button: move all loaded URLs forward to fill empty frames
@@ -167,38 +172,38 @@ function setupEventListeners() {
 
         // Check if there are any gaps (empty frame followed by a filled frame)
         const hasGap = slots.some((val, idx) => !val && slots.slice(idx + 1).some(v => v));
-        if (!hasGap) { showToast('沒有空隙，不需要重排', 'info'); return; }
+        if (!hasGap) { showToast(t('toast_compact_no_gap'), 'info'); return; }
 
         const urls = slots.filter(v => v);
         stopAllVideos();
         setTimeout(() => {
             urls.forEach((url, idx) => loadUrlToFrame(idx + 1, url));
-            showToast('已重排影片框', 'ok');
+            showToast(t('toast_compact_ok'), 'ok');
         }, 300);
     });
 
     // Pause all button
     document.getElementById('btn-pause-all').addEventListener('click', () => {
         for (let i = 1; i <= screenCount; i++) sendMessageToFrame(i, 'pauseVideo');
-        showToast('已暫停所有影片', 'ok');
+        showToast(t('toast_pause_ok'), 'ok');
     });
 
     // Resume all button
     document.getElementById('btn-resume-all').addEventListener('click', () => {
         for (let i = 1; i <= screenCount; i++) sendMessageToFrame(i, 'playVideo');
-        showToast('已繼續播放所有影片', 'ok');
+        showToast(t('toast_resume_ok'), 'ok');
     });
 
     // Mute all button
     document.getElementById('btn-mute-all').addEventListener('click', () => {
         for (let i = 1; i <= screenCount; i++) sendMessageToFrame(i, 'muteVideo');
-        showToast('已靜音所有影片', 'ok');
+        showToast(t('toast_mute_ok'), 'ok');
     });
 
     // Unmute all button
     document.getElementById('btn-unmute-all').addEventListener('click', () => {
         for (let i = 1; i <= screenCount; i++) sendMessageToFrame(i, 'unmuteVideo');
-        showToast('已取消靜音', 'ok');
+        showToast(t('toast_unmute_ok'), 'ok');
     });
 
     // Paste button
@@ -210,7 +215,7 @@ function setupEventListeners() {
                 .filter(u => u && !u.startsWith('#') && u.startsWith('http'));
 
             if (urls.length === 0) {
-                showToast('剪貼簿中沒有有效的網址', 'warn');
+                showToast(t('toast_paste_empty'), 'warn');
                 return;
             }
 
@@ -222,7 +227,7 @@ function setupEventListeners() {
             }
 
             if (emptyFrames.length === 0) {
-                showToast('所有影片框已有內容', 'warn');
+                showToast(t('toast_paste_full'), 'warn');
                 return;
             } else {
                 // Fill empty frames sequentially
@@ -231,10 +236,10 @@ function setupEventListeners() {
                     const frameId = emptyFrames[idx];
                     if (frameId) { loadUrlToFrame(frameId, url); filled++; }
                 });
-                showToast(`已貼上 ${filled} 個網址`, 'ok');
+                showToast(t('toast_paste_ok', filled), 'ok');
             }
         } catch (e) {
-            showToast('無法讀取剪貼簿，請確認瀏覽器已授權', 'error');
+            showToast(t('toast_paste_error'), 'error');
         }
     });
 
@@ -391,51 +396,54 @@ function setupEventListeners() {
 }
 
 function loadSettings() {
-    chrome.storage.local.get(['videoList', 'nextGlobalIndex', 'screenCount', 'savedGroups', 'pendingUrls', 'tabSnapshot'], (data) => {
-        if (data.videoList) videoList = data.videoList;
-        if (data.nextGlobalIndex !== undefined) nextGlobalIndex = data.nextGlobalIndex;
-        if (data.screenCount) screenCount = data.screenCount;
-        if (data.savedGroups) savedGroups = data.savedGroups;
+    initLocale(() => {
+        chrome.storage.local.get(['videoList', 'nextGlobalIndex', 'screenCount', 'savedGroups', 'pendingUrls', 'tabSnapshot'], (data) => {
+            if (data.videoList) videoList = data.videoList;
+            if (data.nextGlobalIndex !== undefined) nextGlobalIndex = data.nextGlobalIndex;
+            if (data.screenCount) screenCount = data.screenCount;
+            if (data.savedGroups) savedGroups = data.savedGroups;
 
-        document.getElementById('layout-2x2').classList.toggle('active', screenCount === 4);
-        document.getElementById('layout-3x3').classList.toggle('active', screenCount === 9);
-        document.getElementById('layout-4x4').classList.toggle('active', screenCount === 16);
-        document.getElementById('layout-5x5').classList.toggle('active', screenCount === 25);
+            document.getElementById('layout-2x2').classList.toggle('active', screenCount === 4);
+            document.getElementById('layout-3x3').classList.toggle('active', screenCount === 9);
+            document.getElementById('layout-4x4').classList.toggle('active', screenCount === 16);
+            document.getElementById('layout-5x5').classList.toggle('active', screenCount === 25);
 
-        setLayout(screenCount);
-        renderVideoList();
-        renderGroups();
+            setLayout(screenCount);
+            renderVideoList();
+            renderGroups();
+            applyI18n();
 
-        // Restore frame snapshot from "open in new tab" action (takes priority)
-        if (data.tabSnapshot && data.tabSnapshot.urls) {
-            const { urls, screenCount: snapshotCount } = data.tabSnapshot;
-            chrome.storage.local.remove('tabSnapshot');
-            setLayout(snapshotCount);
-            const layoutBtnId = { 4: 'layout-2x2', 9: 'layout-3x3', 16: 'layout-4x4', 25: 'layout-5x5' }[snapshotCount];
-            if (layoutBtnId) {
-                ['layout-2x2','layout-3x3','layout-4x4','layout-5x5'].forEach(id =>
-                    document.getElementById(id).classList.toggle('active', id === layoutBtnId));
+            // Restore frame snapshot from "open in new tab" action (takes priority)
+            if (data.tabSnapshot && data.tabSnapshot.urls) {
+                const { urls, screenCount: snapshotCount } = data.tabSnapshot;
+                chrome.storage.local.remove('tabSnapshot');
+                setLayout(snapshotCount);
+                const layoutBtnId = { 4: 'layout-2x2', 9: 'layout-3x3', 16: 'layout-4x4', 25: 'layout-5x5' }[snapshotCount];
+                if (layoutBtnId) {
+                    ['layout-2x2','layout-3x3','layout-4x4','layout-5x5'].forEach(id =>
+                        document.getElementById(id).classList.toggle('active', id === layoutBtnId));
+                }
+                setTimeout(() => {
+                    urls.forEach((url, idx) => {
+                        if (url) loadUrlToFrame(idx + 1, url);
+                    });
+                }, 600);
+                return;
             }
-            setTimeout(() => {
-                urls.forEach((url, idx) => {
-                    if (url) loadUrlToFrame(idx + 1, url);
-                });
-            }, 600);
-            return;
-        }
 
-        // If pendingUrls were sent from the page, load them
-        if (data.pendingUrls && data.pendingUrls.length > 0) {
-            const urls = data.pendingUrls;
-            chrome.storage.local.remove('pendingUrls');
-            autoSelectLayout(urls.length);
-            setTimeout(() => {
-                urls.forEach((url, idx) => {
-                    const frameId = idx + 1;
-                    if (frameId <= screenCount) loadUrlToFrame(frameId, url);
-                });
-            }, 600);
-        }
+            // If pendingUrls were sent from the page, load them
+            if (data.pendingUrls && data.pendingUrls.length > 0) {
+                const urls = data.pendingUrls;
+                chrome.storage.local.remove('pendingUrls');
+                autoSelectLayout(urls.length);
+                setTimeout(() => {
+                    urls.forEach((url, idx) => {
+                        const frameId = idx + 1;
+                        if (frameId <= screenCount) loadUrlToFrame(frameId, url);
+                    });
+                }, 600);
+            }
+        });
     });
 }
 
@@ -451,7 +459,7 @@ function saveSettings() {
 
 function saveGroup() {
     if (savedGroups.length >= 20) {
-        alert('最多只能儲存 20 組記憶，請先刪除一組');
+        alert(t('alert_group_limit'));
         return;
     }
 
@@ -461,13 +469,13 @@ function saveGroup() {
     }
 
     if (urls.every(u => !u)) {
-        alert('目前沒有影片可以記憶');
+        alert(t('alert_group_none'));
         return;
     }
 
     const group = {
         id: Date.now(),
-        name: `群組 ${savedGroups.length + 1}`,
+        name: t('default_group_name', savedGroups.length + 1),
         urls: urls,
         screenCount: screenCount
     };
@@ -505,7 +513,7 @@ function loadGroup(id) {
 function deleteGroup(id) {
     savedGroups = savedGroups.filter(g => g.id !== id);
     // Reassign names
-    savedGroups.forEach((g, idx) => { g.name = `群組 ${idx + 1}`; });
+    savedGroups.forEach((g, idx) => { g.name = t('default_group_name', idx + 1); });
     chrome.storage.local.set({ savedGroups });
     renderGroups();
 }
@@ -527,7 +535,7 @@ function renderGroups() {
         const editBtn = document.createElement('button');
         editBtn.className = 'group-chip-edit';
         editBtn.textContent = '✎';
-        editBtn.title = '編輯';
+        editBtn.title = t('edit_btn_title');
         editBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             openGroupEditModal(group.id);
@@ -536,7 +544,7 @@ function renderGroups() {
         const delBtn = document.createElement('button');
         delBtn.className = 'group-chip-del';
         delBtn.textContent = '×';
-        delBtn.title = '刪除';
+        delBtn.title = t('delete_btn_title');
         delBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             deleteGroup(group.id);
@@ -565,13 +573,13 @@ function openGroupEditModal(id) {
     // Title
     const title = document.createElement('div');
     title.className = 'modal-title';
-    title.textContent = '編輯群組';
+    title.textContent = t('modal_edit_title');
 
     // Name input
     const nameInput = document.createElement('input');
     nameInput.className = 'modal-name-input';
     nameInput.type = 'text';
-    nameInput.placeholder = '群組名稱';
+    nameInput.placeholder = t('modal_name_placeholder');
     nameInput.value = group.name;
 
     // URL list
@@ -603,7 +611,7 @@ function openGroupEditModal(id) {
     // Add URL button
     const addBtn = document.createElement('button');
     addBtn.className = 'modal-add-url';
-    addBtn.textContent = '+ 新增網址';
+    addBtn.textContent = t('modal_add_url');
     addBtn.addEventListener('click', () => addUrlRow());
 
     // Footer
@@ -612,7 +620,7 @@ function openGroupEditModal(id) {
 
     const saveBtn = document.createElement('button');
     saveBtn.className = 'modal-save';
-    saveBtn.textContent = '儲存';
+    saveBtn.textContent = t('modal_save');
     saveBtn.addEventListener('click', () => {
         const newName = nameInput.value.trim() || group.name;
         const newUrls = Array.from(urlList.querySelectorAll('.modal-url-input'))
@@ -628,7 +636,7 @@ function openGroupEditModal(id) {
 
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'modal-cancel';
-    cancelBtn.textContent = '取消';
+    cancelBtn.textContent = t('modal_cancel');
     cancelBtn.addEventListener('click', () => backdrop.remove());
 
     // Close on backdrop click
@@ -645,6 +653,7 @@ function openGroupEditModal(id) {
     box.appendChild(footer);
     backdrop.appendChild(box);
     document.body.appendChild(backdrop);
+    applyI18n();
     nameInput.focus();
 }
 

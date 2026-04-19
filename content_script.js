@@ -387,6 +387,34 @@ if (!isSubscreen) {
     toolbar.appendChild(sendBtn);
     toolbar.appendChild(clearBtn);
 
+    // Load locale and set toolbar text
+    const _toolbarStrings = {
+        zh_TW: { select: '☑ 選擇', send: '送入面板 →', clear: '清除', count: (n) => `已選 ${n}`, reload: '擴充功能已更新，請重新整理此頁面後再試' },
+        zh_CN: { select: '☑ 选择', send: '发送到面板 →', clear: '清除', count: (n) => `已选 ${n}`, reload: '扩展已更新，请刷新页面后重试' },
+        en:    { select: '☑ Select', send: 'Send to Panel →', clear: 'Clear', count: (n) => `${n} selected`, reload: 'Extension updated, please refresh and try again' },
+    };
+
+    let _toolbarLocale = 'zh_TW';
+    const _applyToolbarLocale = () => {
+        const s = _toolbarStrings[_toolbarLocale] || _toolbarStrings['zh_TW'];
+        toggleBtn.textContent = s.select;
+        sendBtn.textContent = s.send;
+        clearBtn.textContent = s.clear;
+        countLabel.textContent = s.count(selectedUrls.length);
+    };
+
+    chrome.storage.local.get(['locale'], (data) => {
+        _toolbarLocale = data.locale || 'zh_TW';
+        _applyToolbarLocale();
+    });
+
+    chrome.storage.onChanged.addListener((changes) => {
+        if (changes.locale) {
+            _toolbarLocale = changes.locale.newValue || 'zh_TW';
+            _applyToolbarLocale();
+        }
+    });
+
     const appendToolbar = () => {
         if (document.body) {
             document.body.appendChild(toolbar);
@@ -410,7 +438,8 @@ if (!isSubscreen) {
 
     const updateUI = () => {
         const n = selectedUrls.length;
-        countLabel.textContent = `已選 ${n}`;
+        const s = _toolbarStrings[_toolbarLocale] || _toolbarStrings['zh_TW'];
+        countLabel.textContent = s.count(n);
         countLabel.style.display = n > 0 ? 'inline' : 'none';
         sendBtn.style.display = n > 0 ? 'inline-block' : 'none';
         clearBtn.style.display = n > 0 ? 'inline-block' : 'none';
@@ -474,7 +503,8 @@ if (!isSubscreen) {
             });
         } catch (e) {
             // Extension has been reloaded; prompt the user to refresh the page
-            alert('擴充功能已更新，請重新整理此頁面後再試');
+            const s = _toolbarStrings[_toolbarLocale] || _toolbarStrings['zh_TW'];
+            alert(s.reload);
             return;
         }
         // Reset
