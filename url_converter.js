@@ -56,6 +56,11 @@ window.convertToEmbedUrl = (rawText, frameId) => {
         if (mNum)  url = `https://www.xvideos.com/embedframe/${mNum[1]}`;
         else if (mAlph) url = `https://www.xvideos.com/embedframe/${mAlph[1]}`;
 
+    // XNXX: https://www.xnxx.com/video-ALPHANUM/title → /embedframe/ALPHANUM
+    } else if (/xnxx\.com\/video/i.test(text)) {
+        const m = text.match(/xnxx\.com\/video-([A-Za-z0-9]+)\//i);
+        if (m) url = `https://www.xnxx.com/embedframe/${m[1]}`;
+
     // BitChute
     } else if (/bitchute\.com\/video\//i.test(text)) {
         const m = text.match(/bitchute\.com\/video\/([A-Za-z0-9]+)/i);
@@ -66,21 +71,26 @@ window.convertToEmbedUrl = (rawText, frameId) => {
         const m = text.match(/odysee\.com\/(.+)/i);
         if (m) url = `https://odysee.com/$/embed/${m[1]}`;
 
-    // Twitch — all variants return early with a special TWITCH_EMBED: marker.
-    // sidepanel.js intercepts this marker and uses Twitch's official JS embed API
-    // (via iframe srcdoc) instead of a plain iframe src, fixing layout issues.
+    // Twitch — use plain iframe.src with parent=localhost for extension contexts
     } else if (/twitch\.tv\/|clips\.twitch\.tv\//i.test(text)) {
+        embedType = 'twitch';
         // Clip: clips.twitch.tv/SLUG  OR  twitch.tv/CHANNEL/clip/SLUG
         const clipM = text.match(/(?:clips\.twitch\.tv\/|twitch\.tv\/[^/]+\/clip\/)([^?&"'\s/]+)/i);
-        if (clipM) return `TWITCH_EMBED:clip:${clipM[1]}`;
-        // VOD: twitch.tv/videos/ID
-        const vodM = text.match(/twitch\.tv\/videos\/(\d+)/i);
-        if (vodM) return `TWITCH_EMBED:video:${vodM[1]}`;
-        // Channel (live stream): twitch.tv/CHANNELNAME — catch-all for any other twitch.tv URL
-        const chM = text.match(/twitch\.tv\/([A-Za-z0-9_]+)/i);
-        if (chM) {
-            const reserved = ['videos','clips','directory','downloads','jobs','p','settings','subscriptions','wallet'];
-            if (!reserved.includes(chM[1].toLowerCase())) return `TWITCH_EMBED:channel:${chM[1]}`;
+        if (clipM) { url = `https://clips.twitch.tv/embed?clip=${clipM[1]}&parent=localhost&autoplay=false`; }
+        else {
+            // VOD: twitch.tv/videos/ID
+            const vodM = text.match(/twitch\.tv\/videos\/(\d+)/i);
+            if (vodM) { url = `https://player.twitch.tv/?video=${vodM[1]}&parent=localhost&autoplay=false`; }
+            else {
+                // Channel (live stream): twitch.tv/CHANNELNAME
+                const chM = text.match(/twitch\.tv\/([A-Za-z0-9_]+)/i);
+                if (chM) {
+                    const reserved = ['videos','clips','directory','downloads','jobs','p','settings','subscriptions','wallet'];
+                    if (!reserved.includes(chM[1].toLowerCase())) {
+                        url = `https://player.twitch.tv/?channel=${chM[1]}&parent=localhost&autoplay=false`;
+                    }
+                }
+            }
         }
     }
 
@@ -104,7 +114,11 @@ window.convertToEmbedUrl = (rawText, frameId) => {
             urlObj.searchParams.set('origin', window.location.origin);
             urlObj.searchParams.set('autoplay', '0');
         }
-        // Twitch already has autoplay=false in the URL above; skip to avoid duplication.
+        // Twitch already has autoplay=false in the URL; skip subscreen/frameId params
+        // to avoid breaking Twitch's embed URL format.
+        if (embedType === 'twitch') {
+            return url; // return the raw Twitch URL without extra params
+        }
         // For generic / xhamster / pornhub etc., don't add autoplay either —
         // their embed players default to click-to-play which is the desired behaviour.
 

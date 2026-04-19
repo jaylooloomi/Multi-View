@@ -23,7 +23,7 @@ let savedGroups = [];
 let dragSourceFrameId = null;
 let currentGroupId = null; // Track which group is currently loaded
 let groupsBarCollapsed = false; // Whether the groups-bar is collapsed
-const twitchFrames = {}; // frameId → {type, id} — tracks frames using Twitch srcdoc embed
+let isDarkTheme = true;
 
 // State management for each frame
 const frameStates = {
@@ -79,6 +79,14 @@ function setupEventListeners() {
     // Locale switcher
     document.getElementById('locale-select').addEventListener('change', (e) => {
         setLocale(e.target.value);
+    });
+
+    // Theme toggle button
+    document.getElementById('btn-theme-toggle').addEventListener('click', () => {
+        isDarkTheme = !isDarkTheme;
+        document.body.classList.toggle('theme-light', !isDarkTheme);
+        document.getElementById('btn-theme-toggle').textContent = isDarkTheme ? '☀' : '🌙';
+        chrome.storage.local.set({ isDarkTheme });
     });
 
     // Layout toggle buttons
@@ -412,13 +420,38 @@ function setupEventListeners() {
 }
 
 function loadSettings() {
+    const isTabMode = new URLSearchParams(location.search).get('mode') === 'tab';
     initLocale(() => {
-        chrome.storage.local.get(['videoList', 'nextGlobalIndex', 'screenCount', 'savedGroups', 'pendingUrls', 'tabSnapshot', 'groupsBarCollapsed'], (data) => {
+        chrome.storage.local.get(['videoList', 'nextGlobalIndex', 'screenCount', 'savedGroups', 'pendingUrls', 'tabSnapshot', 'groupsBarCollapsed', 'isDarkTheme'], (data) => {
             if (data.videoList) videoList = data.videoList;
             if (data.nextGlobalIndex !== undefined) nextGlobalIndex = data.nextGlobalIndex;
             if (data.screenCount) screenCount = data.screenCount;
             if (data.savedGroups) savedGroups = data.savedGroups;
             if (data.groupsBarCollapsed !== undefined) groupsBarCollapsed = data.groupsBarCollapsed;
+
+            // Restore theme
+            if (data.isDarkTheme === false) {
+                isDarkTheme = false;
+                document.body.classList.add('theme-light');
+                document.getElementById('btn-theme-toggle').textContent = '🌙';
+            }
+
+            // In tab mode: enforce minimum window width
+            if (isTabMode) {
+                const MIN_WIDTH = 900;
+                chrome.storage.local.get(['tabWindowWidth'], (wData) => {
+                    const savedW = wData.tabWindowWidth || window.outerWidth;
+                    const targetW = Math.max(savedW, MIN_WIDTH);
+                    if (window.outerWidth < targetW) {
+                        try { window.resizeTo(targetW, window.outerHeight); } catch(e) {}
+                    }
+                });
+                window.addEventListener('resize', () => {
+                    if (window.outerWidth >= 400) {
+                        chrome.storage.local.set({ tabWindowWidth: window.outerWidth });
+                    }
+                });
+            }
 
             document.getElementById('layout-2x2').classList.toggle('active', screenCount === 4);
             document.getElementById('layout-3x3').classList.toggle('active', screenCount === 9);
@@ -880,7 +913,7 @@ function playVideoByIndex(index) {
     // Search within the current screenCount range
     for (let i = 1; i <= screenCount; i++) {
         const iframe = document.getElementById(`screen${i}`);
-        if (iframe.src === "about:blank" && !twitchFrames[i]) {
+        if (iframe.src === "about:blank") {
             targetFrameId = i;
             foundEmpty = true;
             break;
@@ -964,11 +997,9 @@ function processLoadQueue() {
     // Wait 0.8s before physical reset (wait for the command to arrive and be processed — fixed wait after removing handshake)
     setTimeout(() => {
 
-        // 1. Navigate the existing iframe to a blank page (clear Twitch embed too)
+        // 1. Navigate the existing iframe to a blank page
         const oldIframe = document.getElementById(`screen${frameId}`);
         if (oldIframe) {
-            delete twitchFrames[frameId];
-            oldIframe.removeAttribute('srcdoc');
             oldIframe.src = "about:blank";
         }
 
@@ -1025,10 +1056,6 @@ function recreateIframe(frameId) {
     // Re-apply attributes to be safe (even for existing iframes)
     iframe.allow = "autoplay; encrypted-media; fullscreen";
 
-    // Clear any Twitch srcdoc embed before resetting
-    delete twitchFrames[frameId];
-    iframe.removeAttribute('srcdoc');
-
     // Reset src (if not already blank)
     if (iframe.src !== "about:blank") {
         iframe.src = "about:blank";
@@ -1073,53 +1100,10 @@ function cleanupPlaylist() {
     }
 }
 
-// ── Twitch JS Embed API ──────────────────────────────────────────────────────
-// Twitch requires their official JS SDK to embed properly (plain iframe src
-// causes layout issues). We inject the SDK via iframe srcdoc so it runs in its
-// own browsing context without affecting the extension's CSP.
-function buildTwitchSrcdoc(type, id) {
-    if (type === 'clip') {
-        // Clips are not supported by Twitch.Player — use iframe embed inside srcdoc
-        return `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<style>*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;background:#000}iframe{width:100%;height:100%;border:0}</style>
-</head><body>
-<iframe src="https://clips.twitch.tv/embed?clip=${id}&parent=localhost&autoplay=false" allowfullscreen scrolling="no"></iframe>
-</body></html>`;
-    }
-    const optKey = type === 'channel' ? 'channel' : 'video';
-    return `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<style>*{margin:0;padding:0;box-sizing:border-box}html,body,#te{width:100%;height:100%;overflow:hidden;background:#000}</style>
-</head><body>
-<div id="te"></div>
-<script src="https://player.twitch.tv/js/embed/v1.js"></script>
-<script>new Twitch.Player("te",{${optKey}:"${id}",width:"100%",height:"100%",autoplay:false,parent:["localhost"]});<\/script>
-</body></html>`;
-}
-
-// Routes a finalUrl to the correct iframe loading method.
-// Twitch markers (TWITCH_EMBED:type:id) use srcdoc; all others use iframe.src.
-function applyEmbedToFrame(frameId, finalUrl) {
-    const iframe = document.getElementById(`screen${frameId}`);
-    if (!iframe) return;
-    if (finalUrl && finalUrl.startsWith('TWITCH_EMBED:')) {
-        const parts = finalUrl.split(':');
-        const type = parts[1];
-        const id   = parts[2];
-        twitchFrames[frameId] = { type, id };
-        iframe.srcdoc = buildTwitchSrcdoc(type, id);
-        // Keep iframe.src as "about:blank" — twitchFrames tracks occupancy
-    } else {
-        delete twitchFrames[frameId];
-        iframe.removeAttribute('srcdoc');
-        iframe.src = finalUrl;
-    }
-}
-// ─────────────────────────────────────────────────────────────────────────────
-
 function loadVideoToFrame(frameId, video, listIndex) {
     const finalUrl = window.convertToEmbedUrl(video.url, frameId);
     if (finalUrl) {
-        applyEmbedToFrame(frameId, finalUrl);
+        document.getElementById(`screen${frameId}`).src = finalUrl;
         frameStates[frameId] = { videoId: video.id, listIndex: listIndex };
         document.getElementById(`url${frameId}`).value = video.url;
         hidePlaceholder(frameId);
@@ -1132,7 +1116,7 @@ function loadUrlToFrame(frameId, rawUrl) {
     if (!rawUrl) return;
     const finalUrl = window.convertToEmbedUrl(rawUrl, frameId);
     if (finalUrl) {
-        applyEmbedToFrame(frameId, finalUrl);
+        document.getElementById(`screen${frameId}`).src = finalUrl;
         document.getElementById(`url${frameId}`).value = rawUrl;
         frameStates[frameId] = { videoId: null, listIndex: -1 };
         hidePlaceholder(frameId);

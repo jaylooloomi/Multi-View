@@ -25,6 +25,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    min-width: 320px;
 }
 
 /* ── Topbar ──────────────────────────────── */
@@ -808,3 +809,57 @@ body {
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+/* ── Light Theme ─────────────────────────── */
+body.theme-light {
+    --bg: #f5f5f5;
+    --topbar-bg: #e8e8e8;
+    --border: rgba(0,0,0,0.12);
+    --text: #111;
+    --text-dim: #555;
+    --text-muted: #999;
+}
+body.theme-light .screen-card { background: #ddd; }
+body.theme-light .screen-box { background: #ccc; }
+body.theme-light .input-box { background: #e0e0e0; border-color: rgba(0,0,0,0.15); }
+body.theme-light .url-input { background: #f0f0f0; color: #111; border-color: rgba(0,0,0,0.15); }
+body.theme-light .url-input::placeholder { color: #888; }
+body.theme-light .groups-bar { background: var(--topbar-bg); }
+body.theme-light .group-chip { border-color: rgba(0,0,0,0.18); background: rgba(0,0,0,0.06); }
+body.theme-light .group-chip-load, body.theme-light .group-chip-edit, body.theme-light .group-chip-del { color: #333; background: transparent; }
+body.theme-light .modal-backdrop { background: rgba(0,0,0,0.35); }
+body.theme-light .modal-box { background: #f0f0f0; border-color: rgba(0,0,0,0.2); color: #111; }
+body.theme-light .modal-url-input { background: #fff; color: #111; border-color: rgba(0,0,0,0.2); }
+body.theme-light #mv-toast { color: #111; }
+
+/* ── Theme Toggle Button ─────────────────── */
+.btn-theme-toggle {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    border-radius: var(--r);
+    padding: 0 6px;
+    font-size: 13px;
+    cursor: pointer;
+    height: 20px;
+    min-height: 20px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color 0.15s, color 0.15s;
+}
+.btn-theme-toggle:hover {
+    border-color: rgba(255,255,255,0.35);
+    color: #fff;
+}
+body.theme-light .btn-theme-toggle {
+    border-color: rgba(0,0,0,0.18);
+    color: #555;
+}
+body.theme-light .btn-theme-toggle:hover {
+    border-color: rgba(0,0,0,0.4);
+    color: #111;
+}
