@@ -187,14 +187,21 @@ body {
     gap: 0;
 }
 
-.btn-group-panel .btn-paste {
-    border-radius: 0;
-    border: none;
-    border-right: 1px solid rgba(255, 255, 255, 0.12);
+/* All direct children of any group panel share the same flat/separator style */
+.btn-group-panel > * {
+    border-radius: 0 !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.btn-group-panel .btn-paste:last-child {
-    border-right: none;
+.btn-group-panel > *:last-child {
+    border-right: none !important;
 }
 
 /* ── Toast notification ───────────────────────────────── */
