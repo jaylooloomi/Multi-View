@@ -106,6 +106,20 @@ function setupEventListeners() {
         renderGroups();
     });
 
+    // Platform icon bar — click navigates the active tab (not a new tab)
+    document.querySelectorAll('.platform-btn[data-url]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const url = btn.dataset.url;
+            if (!url) return;
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (tabs[0]) {
+                    chrome.tabs.update(tabs[0].id, { url });
+                }
+            });
+        });
+    });
+
     // Groups-bar collapse toggle
     document.getElementById('btn-toggle-groups').addEventListener('click', () => {
         groupsBarCollapsed = !groupsBarCollapsed;
