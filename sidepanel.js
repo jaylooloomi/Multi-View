@@ -87,7 +87,10 @@ function setupEventListeners() {
     // Clear all button
     document.getElementById('btn-clear-all').addEventListener('click', stopAllVideos);
 
-    // Open in new tab button — snapshot current frames, open tab, close side panel
+    // Open in new tab button — snapshot current frames, open tab
+    // If running in side panel (no ?mode=tab param), also close the panel
+    const isTabMode = new URLSearchParams(location.search).get('mode') === 'tab';
+
     document.getElementById('btn-open-tab').addEventListener('click', () => {
         // Collect all currently loaded URLs in order
         const urls = [];
@@ -97,12 +100,11 @@ function setupEventListeners() {
         const hasAny = urls.some(u => u);
 
         const doOpen = () => {
-            chrome.tabs.create({ url: chrome.runtime.getURL('sidepanel.html') });
-            window.close();
+            chrome.tabs.create({ url: chrome.runtime.getURL('sidepanel.html') + '?mode=tab' });
+            if (!isTabMode) window.close(); // only close if we're in the side panel
         };
 
         if (hasAny) {
-            // Save snapshot so the new tab can restore it
             chrome.storage.local.set({ tabSnapshot: { urls, screenCount } }, doOpen);
         } else {
             doOpen();
