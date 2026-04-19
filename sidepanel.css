@@ -392,6 +392,13 @@ body {
     height: 20px;
     object-fit: contain;
     display: block;
+    border-radius: 2px;
+}
+
+/* NicoNico icon is all-black — add yellow outline so it's visible on dark bg */
+.platform-btn--outlined img {
+    outline: 1.5px solid #f5c518;
+    outline-offset: 1px;
 }
 
 /* ── Groups Bar ──────────────────────────── */
