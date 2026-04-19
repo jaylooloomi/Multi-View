@@ -668,6 +668,17 @@ function openGroupEditModal(id) {
         chrome.storage.local.set({ savedGroups });
         renderGroups();
         backdrop.remove();
+
+        // If this group is currently loaded, reload frames to reflect changes
+        if (group.id === currentGroupId) {
+            stopAllVideos();
+            setLayout(group.screenCount);
+            setTimeout(() => {
+                group.urls.forEach((url, idx) => {
+                    if (url) loadUrlToFrame(idx + 1, url);
+                });
+            }, 300);
+        }
     });
 
     const cancelBtn = document.createElement('button');
