@@ -40,7 +40,7 @@ const MESSAGES = {
     edit_btn_title:      '編輯',
     delete_btn_title:    '刪除',
     modal_edit_title:    '編輯群組',
-    modal_name_placeholder: '群組名稱',
+    modal_name_placeholder: '備註（可留空）',
     modal_add_url:       '+ 新增網址',
     modal_save:          '儲存',
     modal_cancel:        '取消'
@@ -84,7 +84,7 @@ const MESSAGES = {
     edit_btn_title:      '编辑',
     delete_btn_title:    '删除',
     modal_edit_title:    '编辑群组',
-    modal_name_placeholder: '群组名称',
+    modal_name_placeholder: '备注（可留空）',
     modal_add_url:       '+ 添加链接',
     modal_save:          '保存',
     modal_cancel:        '取消'
@@ -128,7 +128,7 @@ const MESSAGES = {
     edit_btn_title:      'Edit',
     delete_btn_title:    'Delete',
     modal_edit_title:    'Edit Group',
-    modal_name_placeholder: 'Group Name',
+    modal_name_placeholder: 'Note (optional)',
     modal_add_url:       '+ Add URL',
     modal_save:          'Save',
     modal_cancel:        'Cancel'

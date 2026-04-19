@@ -160,7 +160,10 @@ function setupEventListeners() {
         group.screenCount = screenCount;
         chrome.storage.local.set({ savedGroups });
         renderGroups();
-        showToast(t('toast_save_ok', group.name), 'ok');
+        const savedIdx = savedGroups.findIndex(g => g.id === currentGroupId);
+        const savedBase = t('default_group_name', savedIdx + 1);
+        const savedDisplay = group.nameSuffix ? `${savedBase} (${group.nameSuffix})` : savedBase;
+        showToast(t('toast_save_ok', savedDisplay), 'ok');
     });
 
     // Compact button: move all loaded URLs forward to fill empty frames
@@ -475,8 +478,7 @@ function saveGroup() {
 
     const group = {
         id: Date.now(),
-        name: t('default_group_name', savedGroups.length + 1),
-        isAutoName: true,
+        nameSuffix: '',   // user-editable label inside ()
         urls: urls,
         screenCount: screenCount
     };
@@ -513,13 +515,7 @@ function loadGroup(id) {
 
 function deleteGroup(id) {
     savedGroups = savedGroups.filter(g => g.id !== id);
-    // Reassign auto-names only for groups that still have auto names
-    savedGroups.forEach((g, idx) => {
-        if (g.isAutoName !== false) {
-            g.isAutoName = true;
-            g.name = t('default_group_name', idx + 1);
-        }
-    });
+    // No need to reassign — display names are computed by index at render time
     chrome.storage.local.set({ savedGroups });
     renderGroups();
 }
@@ -532,9 +528,10 @@ function renderGroups() {
         const chip = document.createElement('div');
         chip.className = 'group-chip';
 
-        const displayName = group.isAutoName
-            ? t('default_group_name', idx + 1)
-            : group.name;
+        const baseName = t('default_group_name', idx + 1);
+        const displayName = group.nameSuffix
+            ? `${baseName} (${group.nameSuffix})`
+            : baseName;
 
         const loadBtn = document.createElement('button');
         loadBtn.className = 'group-chip-load';
@@ -585,12 +582,34 @@ function openGroupEditModal(id) {
     title.className = 'modal-title';
     title.textContent = t('modal_edit_title');
 
-    // Name input
+    // Name row: read-only base name + editable suffix
+    const groupIdx = savedGroups.findIndex(g => g.id === id);
+    const nameRow = document.createElement('div');
+    nameRow.className = 'modal-name-row';
+
+    const baseName = t('default_group_name', groupIdx + 1);
+    const baseLabel = document.createElement('span');
+    baseLabel.className = 'modal-name-base';
+    baseLabel.textContent = baseName;
+
+    const nameSep = document.createElement('span');
+    nameSep.className = 'modal-name-sep';
+    nameSep.textContent = '(';
+
     const nameInput = document.createElement('input');
     nameInput.className = 'modal-name-input';
     nameInput.type = 'text';
     nameInput.placeholder = t('modal_name_placeholder');
-    nameInput.value = group.name;
+    nameInput.value = group.nameSuffix || '';
+
+    const nameClose = document.createElement('span');
+    nameClose.className = 'modal-name-sep';
+    nameClose.textContent = ')';
+
+    nameRow.appendChild(baseLabel);
+    nameRow.appendChild(nameSep);
+    nameRow.appendChild(nameInput);
+    nameRow.appendChild(nameClose);
 
     // URL list
     const urlList = document.createElement('div');
@@ -632,13 +651,11 @@ function openGroupEditModal(id) {
     saveBtn.className = 'modal-save';
     saveBtn.textContent = t('modal_save');
     saveBtn.addEventListener('click', () => {
-        const newName = nameInput.value.trim() || group.name;
         const newUrls = Array.from(urlList.querySelectorAll('.modal-url-input'))
             .map(i => i.value.trim())
             .filter(u => u);
 
-        group.name = newName;
-        group.isAutoName = false; // user explicitly named it
+        group.nameSuffix = nameInput.value.trim(); // empty = no suffix
         group.urls = newUrls;
         chrome.storage.local.set({ savedGroups });
         renderGroups();
@@ -658,7 +675,7 @@ function openGroupEditModal(id) {
     footer.appendChild(saveBtn);
     footer.appendChild(cancelBtn);
     box.appendChild(title);
-    box.appendChild(nameInput);
+    box.appendChild(nameRow);
     box.appendChild(urlList);
     box.appendChild(addBtn);
     box.appendChild(footer);
