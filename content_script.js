@@ -396,6 +396,18 @@ if (!isSubscreen) {
     };
     appendToolbar();
 
+    // Re-clamp toolbar inside viewport (call after size may have changed)
+    const clampToolbar = () => {
+        requestAnimationFrame(() => {
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const rect = toolbar.getBoundingClientRect();
+            if (rect.right > vw)  toolbar.style.left = Math.max(0, vw - rect.width)  + 'px';
+            if (rect.bottom > vh) toolbar.style.top  = Math.max(0, vh - rect.height) + 'px';
+            if (rect.left < 0)    toolbar.style.left = '0px';
+            if (rect.top  < 0)    toolbar.style.top  = '0px';
+        });
+    };
+
     const updateUI = () => {
         const n = selectedUrls.length;
         countLabel.textContent = `已選 ${n}`;
@@ -404,6 +416,7 @@ if (!isSubscreen) {
         clearBtn.style.display = n > 0 ? 'inline-block' : 'none';
         toggleBtn.style.background = selectMode
             ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.08)';
+        clampToolbar();
     };
 
     // Highlight thumbnail — apply to the closest card container for full coverage
