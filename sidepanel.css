@@ -111,7 +111,7 @@ body {
 }
 
 /* ── Shared topbar button height ─────────────── */
-.btn-layout, .btn-paste, .btn-tab, .btn-memory, .btn-clear {
+.btn-layout, .btn-paste, .btn-tab, .btn-popup, .btn-memory, .btn-clear {
     height: 20px;
     min-height: 20px;
     box-sizing: border-box;
@@ -194,7 +194,6 @@ body {
     border-bottom: none !important;
     border-left: none !important;
     border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
-    height: 100%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
