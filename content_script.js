@@ -310,13 +310,31 @@ if (isSubscreen) {
 // Only runs when we're embedded in an iframe AND hostname is xhamster.
 if (location.hostname.includes("xhamster") && isInIframe) {
 
-    // Selector for REDIRECT anchors only (NOT bare .xp-play without href).
-    // .xp-play without href is XHamster's own play button — let their JS handle it.
-    // .xp-cta is the "Watch on XHamster" banner button — block that.
-    const REDIRECT_SEL = 'a[href*="gamr.info"], a[href*="utm_campaign=embed"], a.xp-cta[href]';
+    // Problem: XHamster's embed player, when it detects non-approved embedding,
+    // shows a .xp-cta overlay ("Watch on XHamster") that is positioned OVER .xp-play.
+    // Even after we remove its href, .xp-cta still catches all pointer events and
+    // prevents clicks from reaching .xp-play underneath.
+    //
+    // Fix:
+    // 1. Inject CSS to hide .xp-cta entirely (pointer-events:none lets clicks through)
+    // 2. Strip gamr.info hrefs from .xp-play so it doesn't redirect on click
+    // 3. Do NOT block .xp-play clicks — XHamster's own JS must handle them to load video
+    // 4. Do NOT replace window.open — XHamster's player may use it internally
 
-    // 1. Capture-phase click — only blocks actual redirect anchors that still have href.
-    //    Do NOT match bare a.xp-play: their JS lazy-loads the video source on click.
+    // 1. CSS injection: hide the CTA overlay so .xp-play receives clicks
+    const injectXhCSS = () => {
+        const style = document.createElement('style');
+        style.textContent = `
+            a.xp-cta { display: none !important; pointer-events: none !important; }
+            a.xp-poster { pointer-events: none !important; }
+        `;
+        (document.head || document.documentElement).appendChild(style);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectXhCSS);
+    else injectXhCSS();
+
+    // 2. Block redirect hrefs only (gamr.info etc.) — NOT bare .xp-play
+    const REDIRECT_SEL = 'a[href*="gamr.info"], a[href*="utm_campaign=embed"]';
     document.addEventListener('click', (e) => {
         const a = e.target.closest(REDIRECT_SEL);
         if (!a) return;
@@ -324,25 +342,13 @@ if (location.hostname.includes("xhamster") && isInIframe) {
         e.stopImmediatePropagation();
     }, true);
 
-    // 2. Same for pointerdown
-    document.addEventListener('pointerdown', (e) => {
-        const a = e.target.closest(REDIRECT_SEL);
-        if (a) { e.preventDefault(); e.stopImmediatePropagation(); }
-    }, true);
-
-    // 3. Kill window.open so gamr.info cannot open via JS
-    window.open = () => null;
-
-    // 4. Strip href/target so redirect anchors become inert.
-    //    Include a.xp-play in the strip list (removes gamr.info href if XHamster adds it
-    //    dynamically) but do NOT intercept its click — let XHamster play the video.
+    // 3. Strip href/target from any redirect anchors (including .xp-play IF it has href)
     const stripRedirects = () => {
         document.querySelectorAll(
-            'a.xp-play[href], a.xp-cta[href], a[href*="gamr.info"], a[href*="utm_campaign=embed"]'
+            'a.xp-play[href*="gamr.info"], a.xp-play[href*="utm_campaign"], a[href*="gamr.info"], a[href*="utm_campaign=embed"]'
         ).forEach(a => {
             a.removeAttribute('target');
             a.removeAttribute('href');
-            a.style.cursor = 'pointer';
         });
     };
     const xhObs = new MutationObserver(stripRedirects);
