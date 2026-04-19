@@ -323,8 +323,32 @@ if (!isSubscreen) {
         border-radius: 8px; padding: 8px 12px;
         font-family: -apple-system, sans-serif; font-size: 12px; color: #f0f0f0;
         backdrop-filter: blur(8px); box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        user-select: none;
+        user-select: none; cursor: grab;
     `;
+
+    // Drag-to-move logic
+    let _dragX = 0, _dragY = 0, _dragging = false;
+    toolbar.addEventListener('mousedown', (e) => {
+        // Don't start drag if clicking a button
+        if (e.target.tagName === 'BUTTON') return;
+        _dragging = true;
+        _dragX = e.clientX - toolbar.getBoundingClientRect().left;
+        _dragY = e.clientY - toolbar.getBoundingClientRect().top;
+        toolbar.style.cursor = 'grabbing';
+        toolbar.style.right = 'auto'; // switch from right/bottom to left/top positioning
+        toolbar.style.bottom = 'auto';
+        e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+        if (!_dragging) return;
+        toolbar.style.left = (e.clientX - _dragX) + 'px';
+        toolbar.style.top  = (e.clientY - _dragY) + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+        if (!_dragging) return;
+        _dragging = false;
+        toolbar.style.cursor = 'grab';
+    });
 
     const toggleBtn = document.createElement('button');
     toggleBtn.textContent = '☑ 選擇';
