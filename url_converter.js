@@ -66,20 +66,21 @@ window.convertToEmbedUrl = (rawText, frameId) => {
         const m = text.match(/odysee\.com\/(.+)/i);
         if (m) url = `https://odysee.com/$/embed/${m[1]}`;
 
-    // Twitch clip
-    } else if (/clips\.twitch\.tv\/|twitch\.tv\/\w+\/clip\//i.test(text)) {
-        const m = text.match(/(?:clips\.twitch\.tv\/|twitch\.tv\/\w+\/clip\/)([^?&"'\s/]+)/i);
-        if (m) {
-            url = `https://clips.twitch.tv/embed?clip=${m[1]}&parent=localhost&autoplay=false`;
-            embedType = 'twitch';
-        }
-
-    // Twitch VOD
-    } else if (/twitch\.tv\/videos\/\d+/i.test(text)) {
-        const m = text.match(/twitch\.tv\/videos\/(\d+)/i);
-        if (m) {
-            url = `https://player.twitch.tv/?video=${m[1]}&parent=localhost&autoplay=false`;
-            embedType = 'twitch';
+    // Twitch — all variants return early with a special TWITCH_EMBED: marker.
+    // sidepanel.js intercepts this marker and uses Twitch's official JS embed API
+    // (via iframe srcdoc) instead of a plain iframe src, fixing layout issues.
+    } else if (/twitch\.tv\/|clips\.twitch\.tv\//i.test(text)) {
+        // Clip: clips.twitch.tv/SLUG  OR  twitch.tv/CHANNEL/clip/SLUG
+        const clipM = text.match(/(?:clips\.twitch\.tv\/|twitch\.tv\/[^/]+\/clip\/)([^?&"'\s/]+)/i);
+        if (clipM) return `TWITCH_EMBED:clip:${clipM[1]}`;
+        // VOD: twitch.tv/videos/ID
+        const vodM = text.match(/twitch\.tv\/videos\/(\d+)/i);
+        if (vodM) return `TWITCH_EMBED:video:${vodM[1]}`;
+        // Channel (live stream): twitch.tv/CHANNELNAME — catch-all for any other twitch.tv URL
+        const chM = text.match(/twitch\.tv\/([A-Za-z0-9_]+)/i);
+        if (chM) {
+            const reserved = ['videos','clips','directory','downloads','jobs','p','settings','subscriptions','wallet'];
+            if (!reserved.includes(chM[1].toLowerCase())) return `TWITCH_EMBED:channel:${chM[1]}`;
         }
     }
 
