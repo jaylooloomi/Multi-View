@@ -392,6 +392,7 @@ if (!isSubscreen) {
         zh_TW: { select: '☑ 選擇', send: '送入面板 →', clear: '清除', count: (n) => `已選 ${n}`, reload: '擴充功能已更新，請重新整理此頁面後再試' },
         zh_CN: { select: '☑ 选择', send: '发送到面板 →', clear: '清除', count: (n) => `已选 ${n}`, reload: '扩展已更新，请刷新页面后重试' },
         en:    { select: '☑ Select', send: 'Send to Panel →', clear: 'Clear', count: (n) => `${n} selected`, reload: 'Extension updated, please refresh and try again' },
+        ja:    { select: '☑ 選択', send: 'パネルに送る →', clear: 'クリア', count: (n) => `${n}件選択`, reload: '拡張機能が更新されました。ページを更新してから再試行してください' },
     };
 
     let _toolbarLocale = 'zh_TW';
