@@ -15,7 +15,10 @@ async function setupNetRequestRules() {
       },
     },
     {
-      id: 2, // For major platforms
+      id: 2, // For major platforms (group A)
+      // NOTE: keep this regex SHORT — Chrome RE2 has a 2KB compiled-size limit.
+      // Using [^/]* instead of .* before the domain avoids DFA explosion.
+      // Split across two rules (id=2 + id=6) so each stays well under the limit.
       priority: 100,
       action: {
         type: "modifyHeaders",
@@ -30,7 +33,27 @@ async function setupNetRequestRules() {
         ],
       },
       condition: {
-        regexFilter: "^https?://.*(youtube\\.com|googlevideo\\.com|nicovideo\\.jp|tiktok\\.com|twitch\\.tv|doubleclick\\.net|pornhub\\.com|xhamster\\.com|xhamster\\.desi|xhamster\\.one)/.*",
+        regexFilter: "^https?://[^/]*(youtube\\.com|googlevideo\\.com|nicovideo\\.jp|tiktok\\.com|twitch\\.tv|doubleclick\\.net)/",
+        resourceTypes: ["sub_frame", "xmlhttprequest"],
+      },
+    },
+    {
+      id: 6, // For major platforms (group B) — split from id=2 to stay under 2KB RE2 limit
+      priority: 100,
+      action: {
+        type: "modifyHeaders",
+        responseHeaders: [
+          { header: "X-Frame-Options", operation: "remove" },
+          { header: "Content-Security-Policy", operation: "remove" },
+          { header: "Cross-Origin-Embedder-Policy", operation: "remove" },
+          { header: "Cross-Origin-Resource-Policy", operation: "remove" },
+          { header: "Cross-Origin-Opener-Policy", operation: "remove" },
+          { header: "X-WebKit-CSP", operation: "remove" },
+          { header: "X-Content-Security-Policy", operation: "remove" }
+        ],
+      },
+      condition: {
+        regexFilter: "^https?://[^/]*(pornhub\\.com|xhamster\\.com|xhamster\\.desi|xhamster\\.one)/",
         resourceTypes: ["sub_frame", "xmlhttprequest"],
       },
     },
