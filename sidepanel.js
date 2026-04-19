@@ -22,6 +22,7 @@ let isAutoPlay = true;
 let savedGroups = [];
 let dragSourceFrameId = null;
 let currentGroupId = null; // Track which group is currently loaded
+let groupsBarCollapsed = false; // Whether the groups-bar is collapsed
 
 // State management for each frame
 const frameStates = {
@@ -93,6 +94,13 @@ function setupEventListeners() {
     document.getElementById('btn-clear-all').addEventListener('click', () => {
         stopAllVideos();
         currentGroupId = null;
+        renderGroups();
+    });
+
+    // Groups-bar collapse toggle
+    document.getElementById('btn-toggle-groups').addEventListener('click', () => {
+        groupsBarCollapsed = !groupsBarCollapsed;
+        chrome.storage.local.set({ groupsBarCollapsed });
         renderGroups();
     });
 
@@ -404,11 +412,12 @@ function setupEventListeners() {
 
 function loadSettings() {
     initLocale(() => {
-        chrome.storage.local.get(['videoList', 'nextGlobalIndex', 'screenCount', 'savedGroups', 'pendingUrls', 'tabSnapshot'], (data) => {
+        chrome.storage.local.get(['videoList', 'nextGlobalIndex', 'screenCount', 'savedGroups', 'pendingUrls', 'tabSnapshot', 'groupsBarCollapsed'], (data) => {
             if (data.videoList) videoList = data.videoList;
             if (data.nextGlobalIndex !== undefined) nextGlobalIndex = data.nextGlobalIndex;
             if (data.screenCount) screenCount = data.screenCount;
             if (data.savedGroups) savedGroups = data.savedGroups;
+            if (data.groupsBarCollapsed !== undefined) groupsBarCollapsed = data.groupsBarCollapsed;
 
             document.getElementById('layout-2x2').classList.toggle('active', screenCount === 4);
             document.getElementById('layout-3x3').classList.toggle('active', screenCount === 9);
@@ -568,7 +577,16 @@ function renderGroups() {
         bar.appendChild(chip);
     });
 
-    bar.style.display = savedGroups.length > 0 ? 'flex' : 'none';
+    const hasGroups = savedGroups.length > 0;
+    bar.style.display = (hasGroups && !groupsBarCollapsed) ? 'flex' : 'none';
+
+    // Update toggle button arrow & visibility
+    const toggleBtn = document.getElementById('btn-toggle-groups');
+    if (toggleBtn) {
+        toggleBtn.style.display = hasGroups ? '' : 'none';
+        toggleBtn.textContent = groupsBarCollapsed ? '▼' : '▲';
+        toggleBtn.title = groupsBarCollapsed ? '展開群組列' : '收合群組列';
+    }
 }
 
 function openGroupEditModal(id) {

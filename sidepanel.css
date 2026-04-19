@@ -260,6 +260,31 @@ body {
     color: var(--accent);
 }
 
+.btn-toggle-groups {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-dim);
+    border-radius: var(--r);
+    padding: 0 7px;
+    font-size: 10px;
+    cursor: pointer;
+    line-height: 20px;
+    height: 20px;
+    min-height: 20px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-toggle-groups:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #fff;
+}
+
 /* ── Groups Bar ──────────────────────────── */
 .groups-bar {
     display: flex;
