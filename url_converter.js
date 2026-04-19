@@ -41,9 +41,11 @@ window.convertToEmbedUrl = (rawText, frameId) => {
         if (m) url = `https://www.pornhub.com/embed/${m[1]}`;
 
     // XHamster  (xhamster.com / xhamster.desi / xhamster.one)
-    // URL format: /videos/some-title-NUMERIC_ID
+    // Old URL format: /videos/some-title-12345678   (trailing numeric ID)
+    // New URL format: /videos/some-title-xhhpJ9Y    (trailing alphanumeric ID, e.g. 6-8 chars mixed)
+    // The ID is always the last hyphen-separated segment of the path before any ? or #.
     } else if (/xhamster/i.test(text)) {
-        const m = text.match(/xhamster[^/]*\/videos\/[^?#]*?-(\d{5,})\b/i);
+        const m = text.match(/xhamster[^/]*\/videos\/[^?#/]*-([A-Za-z0-9]{5,})(?:[/?#]|$)/i);
         if (m) url = `https://xhamster.com/xembed.php?video=${m[1]}`;
 
     // XVideos — blocked by X-Frame-Options: sameorigin on embedframe too.

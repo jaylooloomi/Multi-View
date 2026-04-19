@@ -838,6 +838,18 @@ body.theme-light .url-input::placeholder { color: #888; }
 body.theme-light .groups-bar { background: var(--topbar-bg); }
 body.theme-light .group-chip { border-color: rgba(0,0,0,0.18); background: rgba(0,0,0,0.06); }
 body.theme-light .group-chip-load, body.theme-light .group-chip-edit, body.theme-light .group-chip-del { color: #333; background: transparent; }
+/* Active group chip in light mode: solid purple tint + dark text for readability */
+body.theme-light .group-chip.group-chip-active {
+    border-color: rgba(103,58,183,0.9);
+    background: rgba(103,58,183,0.22);
+}
+body.theme-light .group-chip.group-chip-active .group-chip-load {
+    color: #311b92; /* deep purple — clearly readable on light purple bg */
+}
+body.theme-light .group-chip.group-chip-active .group-chip-edit,
+body.theme-light .group-chip.group-chip-active .group-chip-del {
+    color: #4527a0;
+}
 body.theme-light .modal-backdrop { background: rgba(0,0,0,0.35); }
 body.theme-light .modal-box { background: #f0f0f0; border-color: rgba(0,0,0,0.2); color: #111; }
 body.theme-light .modal-url-input { background: #fff; color: #111; border-color: rgba(0,0,0,0.2); }
