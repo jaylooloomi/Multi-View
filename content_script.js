@@ -318,7 +318,7 @@ if (!isSubscreen) {
     toolbar.id = '__mv_toolbar__';
     toolbar.style.cssText = `
         position: fixed; bottom: 20px; right: 20px; z-index: 2147483647;
-        display: flex; align-items: center; gap: 8px;
+        display: flex; align-items: center; flex-wrap: nowrap; white-space: nowrap; gap: 8px;
         background: rgba(13,13,13,0.92); border: 1px solid rgba(255,255,255,0.15);
         border-radius: 8px; padding: 8px 12px;
         font-family: -apple-system, sans-serif; font-size: 12px; color: #f0f0f0;
@@ -341,8 +341,12 @@ if (!isSubscreen) {
     });
     document.addEventListener('mousemove', (e) => {
         if (!_dragging) return;
-        toolbar.style.left = (e.clientX - _dragX) + 'px';
-        toolbar.style.top  = (e.clientY - _dragY) + 'px';
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const tw = toolbar.offsetWidth, th = toolbar.offsetHeight;
+        const x = Math.min(Math.max(e.clientX - _dragX, 0), vw - tw);
+        const y = Math.min(Math.max(e.clientY - _dragY, 0), vh - th);
+        toolbar.style.left = x + 'px';
+        toolbar.style.top  = y + 'px';
     });
     document.addEventListener('mouseup', () => {
         if (!_dragging) return;
