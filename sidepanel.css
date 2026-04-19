@@ -91,10 +91,10 @@ body {
 
 /* ── Shared topbar button height ─────────────── */
 .btn-layout, .btn-paste, .btn-tab, .btn-memory, .btn-clear {
-    height: 22px;
-    min-height: 22px;
+    height: 20px;
+    min-height: 20px;
     box-sizing: border-box;
-    line-height: 22px;
+    line-height: 20px;
     padding-top: 0;
     padding-bottom: 0;
     display: inline-flex;
@@ -106,10 +106,10 @@ body {
 }
 
 .locale-select {
-    height: 22px;
-    min-height: 22px;
+    height: 20px;
+    min-height: 20px;
     box-sizing: border-box;
-    line-height: 22px;
+    line-height: 20px;
 }
 
 .btn-layout {
