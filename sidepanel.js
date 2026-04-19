@@ -89,8 +89,12 @@ function setupEventListeners() {
     document.getElementById('layout-4x4').addEventListener('click', () => { setLayout(16); setActiveLayout('layout-4x4'); resetGlobalControls(); });
     document.getElementById('layout-5x5').addEventListener('click', () => { setLayout(25); setActiveLayout('layout-5x5'); resetGlobalControls(); });
 
-    // Clear all button
-    document.getElementById('btn-clear-all').addEventListener('click', stopAllVideos);
+    // Clear all button — also deselect active group
+    document.getElementById('btn-clear-all').addEventListener('click', () => {
+        stopAllVideos();
+        currentGroupId = null;
+        renderGroups();
+    });
 
     // Open in new tab button — snapshot current frames, open tab
     // If running in side panel (no ?mode=tab param), also close the panel
@@ -493,6 +497,7 @@ function loadGroup(id) {
     if (!group) return;
 
     currentGroupId = id;
+    renderGroups(); // update active highlight
     stopAllVideos();
     resetGlobalControls();
 
@@ -526,7 +531,7 @@ function renderGroups() {
 
     savedGroups.forEach((group, idx) => {
         const chip = document.createElement('div');
-        chip.className = 'group-chip';
+        chip.className = 'group-chip' + (group.id === currentGroupId ? ' group-chip-active' : '');
 
         const baseName = t('default_group_name', idx + 1);
         const displayName = group.nameSuffix

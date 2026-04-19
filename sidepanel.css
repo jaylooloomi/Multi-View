@@ -288,6 +288,15 @@ body {
     border-color: rgba(139, 92, 246, 0.4);
 }
 
+.group-chip.group-chip-active {
+    border-color: rgba(139, 92, 246, 0.8);
+    background: rgba(139, 92, 246, 0.18);
+}
+
+.group-chip.group-chip-active .group-chip-load {
+    color: #c4b5fd;
+}
+
 .group-chip-load {
     background: none;
     border: none;
