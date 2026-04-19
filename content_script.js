@@ -218,6 +218,47 @@ if (isSubscreen) {
         setInterval(setupVideoListener, 1000); // Wait for the video tag to be created
     }
 
+    // ── XHamster embed fix ────────────────────────────────────────────────────
+    // xembed.php wraps the play button in <a target="_blank" href="gamr.info/...">
+    // for affiliate monetisation.  When embedded in our iframe this navigates away
+    // instead of playing the video.  Patch: remove the redirect and call video.play().
+    if (location.hostname.includes("xhamster")) {
+        const patchXHamster = () => {
+            // Remove target/_blank from any anchor that contains a play-class element
+            // or that itself has a play-related class.
+            document.querySelectorAll(
+                'a.xp-play, a[class*="play"], a[href*="gamr.info"], a[href*="utm_campaign=embed"]'
+            ).forEach(a => {
+                if (a.dataset.xhPatched) return;
+                a.dataset.xhPatched = '1';
+                a.removeAttribute('target');
+                a.removeAttribute('href');
+                a.style.cursor = 'pointer';
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const video = document.querySelector('video');
+                    if (video) {
+                        video.muted = false;
+                        video.play().catch(() => {});
+                    }
+                });
+            });
+        };
+
+        // Run once DOM is available, then watch for dynamic changes
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', patchXHamster);
+        } else {
+            patchXHamster();
+        }
+        const xhObs = new MutationObserver(patchXHamster);
+        const xhStart = () => xhObs.observe(document.documentElement, { childList: true, subtree: true });
+        if (document.documentElement) xhStart();
+        else document.addEventListener('DOMContentLoaded', xhStart);
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Common to all platforms: monitor video ended
     if (!location.hostname.includes("youtube.com")) {
         const setupVideoListenerGeneric = () => {
