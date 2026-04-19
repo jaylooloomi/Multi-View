@@ -310,33 +310,38 @@ if (isSubscreen) {
 // Only runs when we're embedded in an iframe AND hostname is xhamster.
 if (location.hostname.includes("xhamster") && isInIframe) {
 
-    // 1. Document-level click capture — runs before any XHamster JS handler
+    // Selector for REDIRECT anchors only (NOT bare .xp-play without href).
+    // .xp-play without href is XHamster's own play button — let their JS handle it.
+    // .xp-cta is the "Watch on XHamster" banner button — block that.
+    const REDIRECT_SEL = 'a[href*="gamr.info"], a[href*="utm_campaign=embed"], a.xp-cta[href]';
+
+    // 1. Capture-phase click — only blocks actual redirect anchors that still have href.
+    //    Do NOT match bare a.xp-play: their JS lazy-loads the video source on click.
     document.addEventListener('click', (e) => {
-        const a = e.target.closest('a.xp-play, a[href*="gamr.info"], a[href*="utm_campaign=embed"]');
+        const a = e.target.closest(REDIRECT_SEL);
         if (!a) return;
         e.preventDefault();
         e.stopImmediatePropagation();
-        const video = document.querySelector('video');
-        if (video) { video.muted = false; video.play().catch(() => {}); }
-    }, true /* capture phase */);
+    }, true);
 
-    // 2. Intercept pointerdown too (XHamster may use pointer events)
+    // 2. Same for pointerdown
     document.addEventListener('pointerdown', (e) => {
-        const a = e.target.closest('a.xp-play, a[href*="gamr.info"], a[href*="utm_campaign=embed"]');
+        const a = e.target.closest(REDIRECT_SEL);
         if (a) { e.preventDefault(); e.stopImmediatePropagation(); }
     }, true);
 
-    // 3. Kill window.open so gamr.info cannot open via JS call
+    // 3. Kill window.open so gamr.info cannot open via JS
     window.open = () => null;
 
-    // 4. Continuously strip href/target from redirect anchors
+    // 4. Strip href/target so redirect anchors become inert.
+    //    Include a.xp-play in the strip list (removes gamr.info href if XHamster adds it
+    //    dynamically) but do NOT intercept its click — let XHamster play the video.
     const stripRedirects = () => {
         document.querySelectorAll(
-            'a.xp-play, a[href*="gamr.info"], a[href*="utm_campaign=embed"]'
+            'a.xp-play[href], a.xp-cta[href], a[href*="gamr.info"], a[href*="utm_campaign=embed"]'
         ).forEach(a => {
             a.removeAttribute('target');
             a.removeAttribute('href');
-            a.setAttribute('role', 'button');
             a.style.cursor = 'pointer';
         });
     };
