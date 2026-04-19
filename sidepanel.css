@@ -354,6 +354,45 @@ body {
     color: #fff;
 }
 
+/* ── Platforms Bar ──────────────────────────── */
+.platforms-bar {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 10px;
+    background: var(--topbar-bg);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.platform-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: var(--r);
+    overflow: hidden;
+    opacity: 0.55;
+    transition: opacity 0.15s, transform 0.15s, background 0.15s;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.platform-btn:hover {
+    opacity: 1;
+    transform: scale(1.2);
+    background: rgba(255,255,255,0.08);
+}
+
+.platform-btn img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    display: block;
+}
+
 /* ── Groups Bar ──────────────────────────── */
 .groups-bar {
     display: flex;
@@ -979,6 +1018,21 @@ body.theme-light .btn-clear:hover {
 body.theme-light .btn-toggle-groups {
     border-color: rgba(0,0,0,0.2);
     color: #555;
+}
+body.theme-light .btn-toggle-groups:hover {
+    background: rgba(0,0,0,0.08);
+    color: #222;
+}
+
+/* btn-save-group (記憶) & btn-clear-all (清空) — hover needs background change
+   (border-color alone is overridden by .btn-group-panel > * !important rules) */
+body.theme-light .btn-memory:hover {
+    background: rgba(103,58,183,0.18) !important;
+    color: #311b92;
+}
+body.theme-light .btn-clear:hover {
+    background: rgba(192,57,43,0.10) !important;
+    color: var(--accent);
 }
 
 /* ── Theme Toggle Button ─────────────────── */
