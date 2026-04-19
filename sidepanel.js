@@ -87,6 +87,11 @@ function setupEventListeners() {
     // Clear all button
     document.getElementById('btn-clear-all').addEventListener('click', stopAllVideos);
 
+    // Open in new tab button
+    document.getElementById('btn-open-tab').addEventListener('click', () => {
+        chrome.tabs.create({ url: chrome.runtime.getURL('sidepanel.html') });
+    });
+
     // Save group button
     document.getElementById('btn-save-group').addEventListener('click', saveGroup);
 
