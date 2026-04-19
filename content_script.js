@@ -125,6 +125,9 @@ function scrapeSubscriptionVideos() {
 const params = new URLSearchParams(window.location.search);
 const isSubscreen = params.get("subscreen") === "1";
 const frameId = params.get("frameId"); // Frame identifier passed from the side panel (1~4)
+// Some embed pages (e.g. XHamster) redirect and drop our custom URL params.
+// Use this to detect "we are inside an iframe" even when subscreen=1 was stripped.
+const isInIframe = (window.self !== window.top);
 
 if (isSubscreen) {
     console.log(`[MultiPlaylist] Running in subscreen mode. Frame: ${frameId}`);
@@ -222,54 +225,6 @@ if (isSubscreen) {
     // xembed.php wraps the play button in <a target="_blank" href="gamr.info/...">
     // for affiliate monetisation.  When embedded in our iframe this navigates away
     // instead of playing the video.  Patch: remove the redirect and call video.play().
-    // ── XHamster embed fix ────────────────────────────────────────────────────
-    // xembed.php wraps the play button in <a target="_blank" href="gamr.info/...">
-    // for affiliate monetisation. Clicking it opens a new tab instead of playing.
-    //
-    // Strategy: intercept at document level in CAPTURE phase (runs before any page JS),
-    // block window.open, and periodically strip href+target from redirect anchors.
-    if (location.hostname.includes("xhamster")) {
-
-        // 1. Document-level click capture — catches the event before XHamster JS
-        document.addEventListener('click', (e) => {
-            const a = e.target.closest('a.xp-play, a[href*="gamr.info"], a[href*="utm_campaign=embed"]');
-            if (!a) return;
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            const video = document.querySelector('video');
-            if (video) { video.muted = false; video.play().catch(() => {}); }
-        }, true /* capture */);
-
-        // 2. Also intercept pointerdown (XHamster may use pointer events to navigate)
-        document.addEventListener('pointerdown', (e) => {
-            const a = e.target.closest('a.xp-play, a[href*="gamr.info"], a[href*="utm_campaign=embed"]');
-            if (a) { e.preventDefault(); e.stopImmediatePropagation(); }
-        }, true);
-
-        // 3. Kill window.open so gamr.info redirect cannot open via JS
-        window.open = () => null;
-
-        // 4. Strip href/target from redirect anchors (belt-and-suspenders)
-        const stripRedirects = () => {
-            document.querySelectorAll(
-                'a.xp-play, a[href*="gamr.info"], a[href*="utm_campaign=embed"]'
-            ).forEach(a => {
-                a.removeAttribute('target');
-                a.removeAttribute('href');
-                a.setAttribute('role', 'button');
-                a.style.cursor = 'pointer';
-            });
-        };
-        const xhObs = new MutationObserver(stripRedirects);
-        const xhStart = () => {
-            stripRedirects();
-            xhObs.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['href', 'target'] });
-        };
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', xhStart);
-        else xhStart();
-    }
-    // ─────────────────────────────────────────────────────────────────────────
-
     // Common to all platforms: monitor video ended
     if (!location.hostname.includes("youtube.com")) {
         const setupVideoListenerGeneric = () => {
@@ -349,8 +304,58 @@ if (isSubscreen) {
     });
 }
 
+// ── XHamster embed fix ───────────────────────────────────────────────────────
+// Must run OUTSIDE the isSubscreen block because xembed.php redirects and drops
+// our ?subscreen=1 param. We use isInIframe instead (window !== window.top).
+// Only runs when we're embedded in an iframe AND hostname is xhamster.
+if (location.hostname.includes("xhamster") && isInIframe) {
+
+    // 1. Document-level click capture — runs before any XHamster JS handler
+    document.addEventListener('click', (e) => {
+        const a = e.target.closest('a.xp-play, a[href*="gamr.info"], a[href*="utm_campaign=embed"]');
+        if (!a) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const video = document.querySelector('video');
+        if (video) { video.muted = false; video.play().catch(() => {}); }
+    }, true /* capture phase */);
+
+    // 2. Intercept pointerdown too (XHamster may use pointer events)
+    document.addEventListener('pointerdown', (e) => {
+        const a = e.target.closest('a.xp-play, a[href*="gamr.info"], a[href*="utm_campaign=embed"]');
+        if (a) { e.preventDefault(); e.stopImmediatePropagation(); }
+    }, true);
+
+    // 3. Kill window.open so gamr.info cannot open via JS call
+    window.open = () => null;
+
+    // 4. Continuously strip href/target from redirect anchors
+    const stripRedirects = () => {
+        document.querySelectorAll(
+            'a.xp-play, a[href*="gamr.info"], a[href*="utm_campaign=embed"]'
+        ).forEach(a => {
+            a.removeAttribute('target');
+            a.removeAttribute('href');
+            a.setAttribute('role', 'button');
+            a.style.cursor = 'pointer';
+        });
+    };
+    const xhObs = new MutationObserver(stripRedirects);
+    const xhStart = () => {
+        stripRedirects();
+        xhObs.observe(document.documentElement, {
+            childList: true, subtree: true,
+            attributes: true, attributeFilter: ['href', 'target']
+        });
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', xhStart);
+    else xhStart();
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // --- 3. Selection mode UI (injected into pages outside the side panel) ---
-if (!isSubscreen) {
+// Suppress toolbar when we are embedded as an iframe (e.g. xhamster after redirect)
+if (!isSubscreen && !isInIframe) {
     let selectMode = false;
     let selectedUrls = [];
 
