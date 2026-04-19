@@ -3,91 +3,112 @@ window.convertToEmbedUrl = (rawText, frameId) => {
     const text = rawText.trim();
 
     let url = text;
+    let embedType = 'generic'; // 'youtube' | 'generic' | 'twitch'
 
-    // 1. Convert to various embed URLs
+    // ── 1. Detect & convert to embed URL ────────────────────────────────────
+
+    // Generic <iframe src="..."> paste
     const genericIframeMatch = text.match(/src="([^"]+)"/);
     if (genericIframeMatch && genericIframeMatch[1]) {
         url = genericIframeMatch[1];
-    } else {
-        const ytMatch = text.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/)([^?&"'\s/]+)/i);
-        if (ytMatch) {
-            url = `https://www.youtube.com/watch?v=${ytMatch[1]}`;
-        } else {
-            const nicoMatch = text.match(/(?:nicovideo\.jp\/watch\/|mosasaur\.nicovideo\.jp\/watch\/)(sm|so|nm)?(\d+)/i);
-            if (nicoMatch) {
-                url = `https://embed.nicovideo.jp/watch/${nicoMatch[1] || ''}${nicoMatch[2]}`;
-            } else {
-                const vimeoMatch = text.match(/vimeo\.com\/(\d+)/i);
-                if (vimeoMatch) {
-                    url = `https://player.vimeo.com/video/${vimeoMatch[1]}`;
-                } else {
-                    const tiktokMatch = text.match(/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@?[^\/]+\/video\/(\d+)/i);
-                    if (tiktokMatch) {
-                        const baseUrl = text.split('?')[0];
-                        url = baseUrl;
-                    } else {
-                        const phMatch = text.match(/pornhub\.com\/view_video\.php\?viewkey=([a-zA-Z0-9]+)/i);
-                        if (phMatch) {
-                            url = `https://www.pornhub.com/embed/${phMatch[1]}`;
-                        }
-                        // XHamster: https://xhamster.com/videos/title-12345678 → xembed.php?video=12345678
-                        const xhMatch = text.match(/xhamster(?:\.desi|\.com|\.one)?\/videos\/[^?#]*?-(\d+)(?:[/?#]|$)/i);
-                        if (xhMatch) {
-                            url = `https://xhamster.com/xembed.php?video=${xhMatch[1]}`;
-                        }
-                        // XVideos: https://www.xvideos.com/video12345678/title → embedframe/12345678
-                        const xvMatch = text.match(/xvideos\.com\/video(\d+)/i);
-                        if (xvMatch) {
-                            url = `https://www.xvideos.com/embedframe/${xvMatch[1]}`;
-                        }
-                        // BitChute: https://www.bitchute.com/video/AbCdEf/ → /embed/AbCdEf/
-                        const btMatch = text.match(/bitchute\.com\/video\/([A-Za-z0-9]+)/i);
-                        if (btMatch) {
-                            url = `https://www.bitchute.com/embed/${btMatch[1]}/`;
-                        }
-                        // Odysee: https://odysee.com/@Ch:h/vid:h → /$/embed/@Ch:h/vid:h
-                        const odMatch = text.match(/odysee\.com\/((?![$]).+)/i);
-                        if (odMatch) {
-                            url = `https://odysee.com/$/embed/${odMatch[1]}`;
-                        }
-                        // Twitch etc. omitted (add if needed)
-                        const parentParam = 'localhost';
-                        const twitchClipMatch = text.match(/(?:clips\.twitch\.tv\/|twitch\.tv\/\w+\/clip\/)([^?&"'\s/]+)/i);
-                        if (twitchClipMatch) {
-                            url = `https://clips.twitch.tv/embed?clip=${twitchClipMatch[1]}&parent=${parentParam}&autoplay=true`;
-                        }
-                        const twitchVideoMatch = text.match(/twitch\.tv\/videos\/(\d+)/i);
-                        if (twitchVideoMatch) {
-                            url = `https://player.twitch.tv/?video=${twitchVideoMatch[1]}&parent=${parentParam}&autoplay=true`;
-                        }
-                    }
-                }
-            }
+
+    // YouTube  (/watch, /live, youtu.be)
+    } else if (/youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\//i.test(text)) {
+        const m = text.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/)([^?&"'\s/]+)/i);
+        if (m) {
+            url = `https://www.youtube.com/embed/${m[1]}`;
+            embedType = 'youtube';
+        }
+
+    // NicoNico
+    } else if (/nicovideo\.jp\/watch\//i.test(text)) {
+        const m = text.match(/nicovideo\.jp\/watch\/((?:sm|so|nm)?\d+)/i);
+        if (m) url = `https://embed.nicovideo.jp/watch/${m[1]}`;
+
+    // Vimeo
+    } else if (/vimeo\.com\/\d+/i.test(text)) {
+        const m = text.match(/vimeo\.com\/(\d+)/i);
+        if (m) url = `https://player.vimeo.com/video/${m[1]}`;
+
+    // TikTok  (no embed — use page URL, TikTok blocks iframes anyway)
+    } else if (/tiktok\.com\/@?[^/]+\/video\/\d+/i.test(text)) {
+        url = text.split('?')[0];
+
+    // PornHub
+    } else if (/pornhub\.com\/view_video\.php\?viewkey=/i.test(text)) {
+        const m = text.match(/pornhub\.com\/view_video\.php\?viewkey=([a-zA-Z0-9]+)/i);
+        if (m) url = `https://www.pornhub.com/embed/${m[1]}`;
+
+    // XHamster  (xhamster.com / xhamster.desi / xhamster.one)
+    // URL format: /videos/some-title-NUMERIC_ID
+    } else if (/xhamster/i.test(text)) {
+        const m = text.match(/xhamster[^/]*\/videos\/[^?#]*?-(\d{5,})\b/i);
+        if (m) url = `https://xhamster.com/xembed.php?video=${m[1]}`;
+
+    // XVideos — blocked by X-Frame-Options: sameorigin on embedframe too.
+    // We convert the URL so users at least get a clear error instead of the wrong page.
+    // Format A: /video12345678/title  (numeric)
+    // Format B: /video.ALPHANUM/title (newer)
+    } else if (/xvideos\.com\/video/i.test(text)) {
+        const mNum  = text.match(/xvideos\.com\/video(\d+)\//i);
+        const mAlph = text.match(/xvideos\.com\/video\.([A-Za-z0-9]+)\//i);
+        if (mNum)  url = `https://www.xvideos.com/embedframe/${mNum[1]}`;
+        else if (mAlph) url = `https://www.xvideos.com/embedframe/${mAlph[1]}`;
+
+    // BitChute
+    } else if (/bitchute\.com\/video\//i.test(text)) {
+        const m = text.match(/bitchute\.com\/video\/([A-Za-z0-9]+)/i);
+        if (m) url = `https://www.bitchute.com/embed/${m[1]}/`;
+
+    // Odysee
+    } else if (/odysee\.com\//i.test(text) && !/odysee\.com\/\$\//i.test(text)) {
+        const m = text.match(/odysee\.com\/(.+)/i);
+        if (m) url = `https://odysee.com/$/embed/${m[1]}`;
+
+    // Twitch clip
+    } else if (/clips\.twitch\.tv\/|twitch\.tv\/\w+\/clip\//i.test(text)) {
+        const m = text.match(/(?:clips\.twitch\.tv\/|twitch\.tv\/\w+\/clip\/)([^?&"'\s/]+)/i);
+        if (m) {
+            url = `https://clips.twitch.tv/embed?clip=${m[1]}&parent=localhost&autoplay=false`;
+            embedType = 'twitch';
+        }
+
+    // Twitch VOD
+    } else if (/twitch\.tv\/videos\/\d+/i.test(text)) {
+        const m = text.match(/twitch\.tv\/videos\/(\d+)/i);
+        if (m) {
+            url = `https://player.twitch.tv/?video=${m[1]}&parent=localhost&autoplay=false`;
+            embedType = 'twitch';
         }
     }
 
-    // Prepend http/https if missing
-    if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
-        url = 'https://' + url;
-    }
+    // Prepend https:// if scheme is missing
+    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
 
-    // 2. Add parameters
-    // Add subscreen=1 and frameId to indicate embed mode and which frame this is
-    // Add enablejsapi=1 to enable control via postMessage (pause, quality change, etc.)
+    // ── 2. Append parameters ─────────────────────────────────────────────────
+    // Only YouTube gets enablejsapi / origin (they are YouTube-IFrame-API params).
+    // Other embeds must NOT receive origin=chrome-extension://... — it causes them
+    // to detect a non-allowlisted host and fall back to opening the video page.
     try {
         const urlObj = new URL(url);
+
+        // Marker so the embedded page knows it's inside Multi-View
         urlObj.searchParams.set('subscreen', '1');
-        urlObj.searchParams.set('enablejsapi', '1'); // Enable API
-        urlObj.searchParams.set('origin', window.location.origin); // Cross-origin security measure
-        urlObj.searchParams.set('autoplay', '0');
-        // mute not set — let the browser's default behavior decide
-        if (frameId) {
-            urlObj.searchParams.set('frameId', frameId);
+
+        if (frameId) urlObj.searchParams.set('frameId', frameId);
+
+        if (embedType === 'youtube') {
+            urlObj.searchParams.set('enablejsapi', '1');
+            urlObj.searchParams.set('origin', window.location.origin);
+            urlObj.searchParams.set('autoplay', '0');
         }
+        // Twitch already has autoplay=false in the URL above; skip to avoid duplication.
+        // For generic / xhamster / pornhub etc., don't add autoplay either —
+        // their embed players default to click-to-play which is the desired behaviour.
+
         return urlObj.toString();
     } catch (e) {
-        // On URL parse failure, return as-is (or null)
-        console.error("Invalid URL:", url);
+        console.error('[Multi-View] Invalid embed URL:', url, e);
         return url;
     }
 };
