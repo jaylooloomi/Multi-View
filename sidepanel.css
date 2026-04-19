@@ -68,6 +68,15 @@ body {
     outline: none;
     appearance: none;
     -webkit-appearance: none;
+    height: 20px;
+    min-height: 20px;
+    line-height: 20px;
+    display: inline-flex;
+    align-items: center;
+    text-align: center;
+    text-align-last: center;
+    vertical-align: middle;
+    box-sizing: border-box;
 }
 
 .locale-select:hover {

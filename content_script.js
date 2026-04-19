@@ -222,40 +222,51 @@ if (isSubscreen) {
     // xembed.php wraps the play button in <a target="_blank" href="gamr.info/...">
     // for affiliate monetisation.  When embedded in our iframe this navigates away
     // instead of playing the video.  Patch: remove the redirect and call video.play().
+    // ── XHamster embed fix ────────────────────────────────────────────────────
+    // xembed.php wraps the play button in <a target="_blank" href="gamr.info/...">
+    // for affiliate monetisation. Clicking it opens a new tab instead of playing.
+    //
+    // Strategy: intercept at document level in CAPTURE phase (runs before any page JS),
+    // block window.open, and periodically strip href+target from redirect anchors.
     if (location.hostname.includes("xhamster")) {
-        const patchXHamster = () => {
-            // Remove target/_blank from any anchor that contains a play-class element
-            // or that itself has a play-related class.
+
+        // 1. Document-level click capture — catches the event before XHamster JS
+        document.addEventListener('click', (e) => {
+            const a = e.target.closest('a.xp-play, a[href*="gamr.info"], a[href*="utm_campaign=embed"]');
+            if (!a) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            const video = document.querySelector('video');
+            if (video) { video.muted = false; video.play().catch(() => {}); }
+        }, true /* capture */);
+
+        // 2. Also intercept pointerdown (XHamster may use pointer events to navigate)
+        document.addEventListener('pointerdown', (e) => {
+            const a = e.target.closest('a.xp-play, a[href*="gamr.info"], a[href*="utm_campaign=embed"]');
+            if (a) { e.preventDefault(); e.stopImmediatePropagation(); }
+        }, true);
+
+        // 3. Kill window.open so gamr.info redirect cannot open via JS
+        window.open = () => null;
+
+        // 4. Strip href/target from redirect anchors (belt-and-suspenders)
+        const stripRedirects = () => {
             document.querySelectorAll(
-                'a.xp-play, a[class*="play"], a[href*="gamr.info"], a[href*="utm_campaign=embed"]'
+                'a.xp-play, a[href*="gamr.info"], a[href*="utm_campaign=embed"]'
             ).forEach(a => {
-                if (a.dataset.xhPatched) return;
-                a.dataset.xhPatched = '1';
                 a.removeAttribute('target');
                 a.removeAttribute('href');
+                a.setAttribute('role', 'button');
                 a.style.cursor = 'pointer';
-                a.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const video = document.querySelector('video');
-                    if (video) {
-                        video.muted = false;
-                        video.play().catch(() => {});
-                    }
-                });
             });
         };
-
-        // Run once DOM is available, then watch for dynamic changes
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', patchXHamster);
-        } else {
-            patchXHamster();
-        }
-        const xhObs = new MutationObserver(patchXHamster);
-        const xhStart = () => xhObs.observe(document.documentElement, { childList: true, subtree: true });
-        if (document.documentElement) xhStart();
-        else document.addEventListener('DOMContentLoaded', xhStart);
+        const xhObs = new MutationObserver(stripRedirects);
+        const xhStart = () => {
+            stripRedirects();
+            xhObs.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['href', 'target'] });
+        };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', xhStart);
+        else xhStart();
     }
     // ─────────────────────────────────────────────────────────────────────────
 
