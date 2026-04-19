@@ -249,6 +249,24 @@ body {
     border-color: rgba(30, 136, 229, 0.55);
 }
 
+/* ── Popup Window button ─────────────────────── */
+.btn-popup {
+    background: rgba(0, 188, 156, 0.10);
+    border: 1px solid rgba(0, 188, 156, 0.28);
+    color: #4dd0c4;
+    border-radius: var(--r);
+    padding: 0 10px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.btn-popup:hover {
+    background: rgba(0, 188, 156, 0.22);
+    border-color: rgba(0, 188, 156, 0.55);
+}
+
 /* ── Buy Me a Coffee button ─────────────────── */
 .btn-coffee {
     display: inline-flex;
@@ -913,6 +931,17 @@ body.theme-light .btn-tab {
 body.theme-light .btn-tab:hover {
     background: rgba(30,136,229,0.2);
     border-color: rgba(30,136,229,0.7);
+}
+
+/* btn-open-popup (⊞ 新窗): dark is teal-tinted, light needs stronger contrast */
+body.theme-light .btn-popup {
+    background: rgba(0,188,156,0.08);
+    border-color: rgba(0,150,136,0.4);
+    color: #00695c;
+}
+body.theme-light .btn-popup:hover {
+    background: rgba(0,188,156,0.18);
+    border-color: rgba(0,150,136,0.65);
 }
 
 /* btn-save-group (記憶): dark is purple-tinted, light needs stronger contrast */

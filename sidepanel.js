@@ -137,6 +137,33 @@ function setupEventListeners() {
         }
     });
 
+    // Open in popup window — same URL snapshot logic as tab, but opens a
+    // chrome popup window (type:'popup') which has no address bar / bookmark bar.
+    document.getElementById('btn-open-popup').addEventListener('click', () => {
+        const urls = [];
+        for (let i = 1; i <= screenCount; i++) {
+            urls.push(document.getElementById(`url${i}`)?.value || '');
+        }
+        const hasAny = urls.some(u => u);
+
+        const doOpen = () => {
+            chrome.windows.create({
+                url: chrome.runtime.getURL('sidepanel.html') + '?mode=popup',
+                type: 'popup',
+                width: Math.max(window.screen.availWidth * 0.8 | 0, 900),
+                height: Math.max(window.screen.availHeight * 0.85 | 0, 600),
+                focused: true
+            });
+            // Don't close the side panel — user may want both open simultaneously
+        };
+
+        if (hasAny) {
+            chrome.storage.local.set({ tabSnapshot: { urls, screenCount } }, doOpen);
+        } else {
+            doOpen();
+        }
+    });
+
     // Save group button
     document.getElementById('btn-save-group').addEventListener('click', saveGroup);
 
