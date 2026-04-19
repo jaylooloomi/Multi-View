@@ -30,7 +30,7 @@ async function setupNetRequestRules() {
         ],
       },
       condition: {
-        regexFilter: "^https?://.*(youtube\\.com|googlevideo\\.com|nicovideo\\.jp|tiktok\\.com|twitch\\.tv|doubleclick\\.net|pornhub\\.com)/.*",
+        regexFilter: "^https?://.*(youtube\\.com|googlevideo\\.com|nicovideo\\.jp|tiktok\\.com|twitch\\.tv|doubleclick\\.net|pornhub\\.com|xhamster\\.com|xhamster\\.desi|xhamster\\.one)/.*",
         resourceTypes: ["sub_frame", "xmlhttprequest"],
       },
     },
@@ -70,6 +70,28 @@ async function setupNetRequestRules() {
       condition: {
         regexFilter: "^https?://.*(rule34video\\.com|ashemaletube\\.com|xgroovy\\.com)/.*",
         resourceTypes: ["sub_frame", "xmlhttprequest"],
+      },
+    },
+    {
+      id: 5, // XHamster: spoof Referer/Origin so embed player allows playback
+      // XHamster's embed player JS checks document.referrer — if it's not from
+      // xhamster.com it blocks video playback. Extension pages send
+      // chrome-extension://... which fails the check.
+      // Spoofing Referer + Origin to xhamster.com makes the player think the
+      // embed is hosted on xhamster itself.
+      // Priority 200 so it overrides the generic header-removal rule (id=2/3).
+      // Only affects XHamster sub_frame and XHR (video segment) requests.
+      priority: 200,
+      action: {
+        type: "modifyHeaders",
+        requestHeaders: [
+          { header: "Referer", operation: "set", value: "https://xhamster.com/" },
+          { header: "Origin", operation: "set", value: "https://xhamster.com" }
+        ],
+      },
+      condition: {
+        regexFilter: "^https?://[a-z.]*xhamster\\.(com|desi|one)/",
+        resourceTypes: ["sub_frame", "xmlhttprequest", "media"],
       },
     }
   ];
