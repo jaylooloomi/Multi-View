@@ -395,6 +395,55 @@ body {
     border-radius: 2px;
 }
 
+/* Adult-content icons: hidden by default, shown when toggle is ON */
+.platform-btn--porn { display: none !important; }
+.platforms-bar.porn-visible .platform-btn--porn { display: inline-flex !important; }
+
+/* Porn toggle switch (pill shape, sits between Odysee and PornHub) */
+.porn-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 16px;
+    cursor: pointer;
+    margin: 0 2px;
+}
+.porn-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+.porn-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+.porn-toggle-slider::before {
+    content: '🔞';
+    font-size: 9px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    left: 2px;
+    top: 2px;
+    background: rgba(255,255,255,0.55);
+    border-radius: 50%;
+    transition: transform 0.2s, background 0.2s;
+}
+.porn-toggle input:checked + .porn-toggle-slider {
+    background: rgba(239,68,68,0.55);
+}
+.porn-toggle input:checked + .porn-toggle-slider::before {
+    transform: translateX(12px);
+    background: #fff;
+}
+.porn-toggle:hover .porn-toggle-slider { background: rgba(255,255,255,0.25); }
+.porn-toggle input:checked:hover + .porn-toggle-slider { background: rgba(239,68,68,0.75); }
+
 /* NicoNico icon is all-black — invert to white in dark mode, keep original in light mode */
 .platform-btn--nicovideo img {
     filter: brightness(0) invert(1); /* black → white for dark bg */
@@ -726,6 +775,13 @@ body.theme-light .platform-btn--nicovideo img {
     color: #aaa;
 }
 .skip-btn:hover { background: rgba(255, 255, 255, 0.2); color: #fff; }
+
+.btn-link {
+    background: rgba(80, 180, 240, 0.18);
+    color: #7dd3fc;
+    font-size: 13px;
+}
+.btn-link:hover { background: rgba(80, 180, 240, 0.38); color: #fff; }
 
 /* ── Group Edit Modal ────────────────────── */
 .modal-backdrop {

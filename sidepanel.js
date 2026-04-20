@@ -106,6 +106,18 @@ function setupEventListeners() {
         renderGroups();
     });
 
+    // Porn toggle — show/hide adult platform icons; state persisted in localStorage
+    const pornToggleChk = document.getElementById('chk-porn-toggle');
+    const platformsBar  = document.getElementById('platforms-bar');
+    const _pornVisible  = localStorage.getItem('pornVisible') === '1';
+    pornToggleChk.checked = _pornVisible;
+    if (_pornVisible) platformsBar.classList.add('porn-visible');
+    pornToggleChk.addEventListener('change', () => {
+        const on = pornToggleChk.checked;
+        platformsBar.classList.toggle('porn-visible', on);
+        localStorage.setItem('pornVisible', on ? '1' : '0');
+    });
+
     // Platform icon bar — click navigates the active tab (not a new tab)
     document.querySelectorAll('.platform-btn[data-url]').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -350,6 +362,29 @@ function setupEventListeners() {
         document.querySelector(`.stop-btn[data-frame="${i}"]`).addEventListener('click', () => {
             stopFrame(i);
         });
+
+        // Link button — open this frame's current video in a new popup window
+        (() => {
+            const linkBtn = document.createElement('button');
+            linkBtn.className = 'btn-ctrl btn-link';
+            linkBtn.dataset.frame = String(i);
+            linkBtn.title = '在新視窗開啟此影片';
+            linkBtn.textContent = '↗';
+            const skipBtn = document.querySelector(`.skip-btn[data-frame="${i}"]`);
+            if (skipBtn) skipBtn.after(linkBtn);
+            linkBtn.addEventListener('click', () => {
+                const iframe = document.getElementById(`screen${i}`);
+                const src = iframe?.src;
+                if (!src || src === 'about:blank') return;
+                chrome.windows.create({
+                    url: src,
+                    type: 'popup',
+                    width:  Math.max(Math.round(window.screen.availWidth  * 0.65), 800),
+                    height: Math.max(Math.round(window.screen.availHeight * 0.72), 560),
+                    focused: true
+                });
+            });
+        })();
 
         // Drag & drop (internal frame-to-frame move + external URL drop)
         const card = document.getElementById(`wrapper${i}`);

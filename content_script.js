@@ -407,6 +407,21 @@ if ((location.hostname.includes('rule34video') || location.hostname.includes('xg
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectKvsCSS);
     else injectKvsCSS();
+
+    // Block click-redirect overlays — KVS embeds wrap the play area in an <a>
+    // that redirects to the full video page.  We intercept at capture phase
+    // (fires before the anchor's own handler) and call preventDefault() so the
+    // navigation never happens, while FlowPlayer's non-anchor click handlers
+    // on the video element still fire normally and start playback.
+    document.addEventListener('click', function(e) {
+        const a = e.target.closest('a[href]');
+        if (!a) return;
+        const href = a.getAttribute('href') || '';
+        if (/\/(video|videos)\//i.test(href) || href.includes(location.hostname)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+        }
+    }, true); // useCapture = true
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
