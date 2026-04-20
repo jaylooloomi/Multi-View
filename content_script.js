@@ -321,12 +321,14 @@ if (location.hostname.includes("xhamster") && isInIframe) {
     // 3. Do NOT block .xp-play clicks — XHamster's own JS must handle them to load video
     // 4. Do NOT replace window.open — XHamster's player may use it internally
 
-    // 1. CSS injection: hide the CTA overlay so .xp-play receives clicks
+    // 1. CSS injection: hide the CTA overlay so .xp-play / .xp-poster receive clicks.
+    //    We do NOT set pointer-events:none on .xp-poster — it is the element XHamster's
+    //    own JS listens on to start playback. Disabling it makes the play button inert.
+    //    Redirect prevention is handled by stripRedirects() below (href removal).
     const injectXhCSS = () => {
         const style = document.createElement('style');
         style.textContent = `
             a.xp-cta { display: none !important; pointer-events: none !important; }
-            a.xp-poster { pointer-events: none !important; }
         `;
         (document.head || document.documentElement).appendChild(style);
     };
@@ -361,6 +363,50 @@ if (location.hostname.includes("xhamster") && isInIframe) {
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', xhStart);
     else xhStart();
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Rule34Video / XGroovy embed fix ─────────────────────────────────────────
+// Both sites use the KVS (FlowPlayer) platform and load a full page inside the
+// iframe. Hide the site chrome so only the video player area is visible.
+// NOTE: do NOT change .video_container positioning — FlowPlayer's click handler
+// relies on the normal document flow for hit-testing.
+if ((location.hostname.includes('rule34video') || location.hostname.includes('xgroovy')) && isInIframe) {
+    const injectKvsCSS = () => {
+        const style = document.createElement('style');
+        style.textContent = `
+            .header, .sidebar-aside, aside, nav,
+            .footer, .footer_holder, .footer_spots,
+            .spot_under, .spots, .video_tools, .heading,
+            .mobile-box, .overlay_bg, .overlay_content,
+            .suggest_block, .related_block, .comments_block,
+            .adv, .banner, [id^="google_ads"], .report_btn { display: none !important; }
+
+            html, body {
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #000 !important;
+            }
+            .wrapper, .main, .container, .twocolumns,
+            .content_general, .row_container, .block_layout {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                background: #000 !important;
+            }
+            .video_container, .player, .player-holder,
+            .player-wrap, #player, #video_player {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 100% !important;
+            }
+        `;
+        (document.head || document.documentElement).appendChild(style);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectKvsCSS);
+    else injectKvsCSS();
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
