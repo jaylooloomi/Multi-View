@@ -444,6 +444,28 @@ body {
 .porn-toggle:hover .porn-toggle-slider { background: rgba(255,255,255,0.25); }
 .porn-toggle input:checked:hover + .porn-toggle-slider { background: rgba(239,68,68,0.75); }
 
+/* Light mode: dark track so it's visible on the light topbar */
+body.theme-light .porn-toggle-slider {
+    background: rgba(0,0,0,0.18);
+    border: 1px solid rgba(0,0,0,0.18);
+}
+body.theme-light .porn-toggle-slider::before {
+    background: rgba(80,80,80,0.7);
+}
+body.theme-light .porn-toggle:hover .porn-toggle-slider {
+    background: rgba(0,0,0,0.28);
+}
+body.theme-light .porn-toggle input:checked + .porn-toggle-slider {
+    background: rgba(220,38,38,0.65);
+    border-color: rgba(220,38,38,0.3);
+}
+body.theme-light .porn-toggle input:checked + .porn-toggle-slider::before {
+    background: #fff;
+}
+body.theme-light .porn-toggle input:checked:hover + .porn-toggle-slider {
+    background: rgba(220,38,38,0.82);
+}
+
 /* NicoNico icon is all-black — invert to white in dark mode, keep original in light mode */
 .platform-btn--nicovideo img {
     filter: brightness(0) invert(1); /* black → white for dark bg */
@@ -473,11 +495,54 @@ body.theme-light .platform-btn--nicovideo img {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
     overflow: hidden;
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, opacity 0.15s;
+    cursor: grab;
 }
+.group-chip:active { cursor: grabbing; }
 
 .group-chip:hover {
     border-color: rgba(139, 92, 246, 0.4);
+}
+
+/* Drag-to-reorder visual feedback */
+.group-chip.group-chip-dragging {
+    opacity: 0.35;
+    cursor: grabbing;
+}
+.group-chip.group-chip-drag-over {
+    border-color: rgba(139, 92, 246, 0.85) !important;
+    background: rgba(139, 92, 246, 0.18);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+}
+
+/* + clear-frames button at end of groups bar */
+.group-chip-clear-frames {
+    flex-shrink: 0;
+    height: 24px;
+    min-width: 24px;
+    padding: 0 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.22);
+    border-radius: 20px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.group-chip-clear-frames:hover {
+    border-color: rgba(139, 92, 246, 0.7);
+    color: #c4b5fd;
+    background: rgba(139, 92, 246, 0.12);
+}
+body.theme-light .group-chip-clear-frames {
+    border-color: rgba(0,0,0,0.22);
+    color: rgba(0,0,0,0.4);
+}
+body.theme-light .group-chip-clear-frames:hover {
+    border-color: rgba(103,58,183,0.6);
+    color: #512da8;
+    background: rgba(103,58,183,0.08);
 }
 
 .group-chip.group-chip-active {

@@ -716,9 +716,13 @@ function renderGroups() {
     const bar = document.getElementById('groups-bar');
     bar.innerHTML = '';
 
+    // ── Drag state (scoped to this render) ───────────────────────────────────
+    let dragSrcIdx = null;
+
     savedGroups.forEach((group, idx) => {
         const chip = document.createElement('div');
         chip.className = 'group-chip' + (group.id === currentGroupId ? ' group-chip-active' : '');
+        chip.draggable = true;
 
         const baseName = t('default_group_name', idx + 1);
         const displayName = group.nameSuffix
@@ -752,8 +756,57 @@ function renderGroups() {
         chip.appendChild(loadBtn);
         chip.appendChild(editBtn);
         chip.appendChild(delBtn);
+
+        // ── Drag-to-reorder ─────────────────────────────────────────────────
+        chip.addEventListener('dragstart', (e) => {
+            dragSrcIdx = idx;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', idx); // required for Firefox
+            setTimeout(() => chip.classList.add('group-chip-dragging'), 0);
+        });
+        chip.addEventListener('dragend', () => {
+            chip.classList.remove('group-chip-dragging');
+            bar.querySelectorAll('.group-chip').forEach(c => c.classList.remove('group-chip-drag-over'));
+        });
+        chip.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (dragSrcIdx !== null && dragSrcIdx !== idx) {
+                bar.querySelectorAll('.group-chip').forEach(c => c.classList.remove('group-chip-drag-over'));
+                chip.classList.add('group-chip-drag-over');
+            }
+        });
+        chip.addEventListener('dragleave', () => {
+            chip.classList.remove('group-chip-drag-over');
+        });
+        chip.addEventListener('drop', (e) => {
+            e.preventDefault();
+            chip.classList.remove('group-chip-drag-over');
+            if (dragSrcIdx === null || dragSrcIdx === idx) return;
+            // Reorder in-place
+            const [moved] = savedGroups.splice(dragSrcIdx, 1);
+            savedGroups.splice(idx, 0, moved);
+            dragSrcIdx = null;
+            chrome.storage.local.set({ savedGroups });
+            renderGroups();
+        });
+
         bar.appendChild(chip);
     });
+
+    // ── + button: clear all frames so user can load a fresh set of videos ───
+    if (savedGroups.length > 0) {
+        const clearFramesBtn = document.createElement('button');
+        clearFramesBtn.className = 'group-chip-clear-frames';
+        clearFramesBtn.textContent = '+';
+        clearFramesBtn.title = t('group_clear_frames_title');
+        clearFramesBtn.addEventListener('click', () => {
+            stopAllVideos();
+            currentGroupId = null;
+            renderGroups();
+        });
+        bar.appendChild(clearFramesBtn);
+    }
 
     const hasGroups = savedGroups.length > 0;
     bar.style.display = (hasGroups && !groupsBarCollapsed) ? 'flex' : 'none';

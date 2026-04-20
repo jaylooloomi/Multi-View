@@ -10,6 +10,7 @@ const MESSAGES = {
     btn_resume_all:      '繼續',
     btn_mute_all:        '靜音',
     btn_unmute_all:      '取消靜音',
+    btn_coffee_title:    '請我喝杯咖啡 ☕',
     btn_open_tab:        '❐ 分頁',
     btn_open_tab_title:  '在新分頁開啟',
     btn_open_popup:      '⧉ 開新視窗',
@@ -47,7 +48,8 @@ const MESSAGES = {
     modal_add_url:       '+ 新增網址',
     modal_save:          '儲存',
     modal_cancel:        '取消',
-    porn_toggle_title:   '顯示／隱藏成人平台'
+    porn_toggle_title:        '顯示／隱藏成人平台',
+    group_clear_frames_title: '清空所有影片框，開始新一輪'
   },
   zh_CN: {
     btn_copy:            '复制',
@@ -58,6 +60,7 @@ const MESSAGES = {
     btn_resume_all:      '继续',
     btn_mute_all:        '静音',
     btn_unmute_all:      '取消静音',
+    btn_coffee_title:    '请我喝杯咖啡 ☕',
     btn_open_tab:        '❐ 新标签',
     btn_open_tab_title:  '在新标签页开启',
     btn_open_popup:      '⧉ 新窗口',
@@ -95,7 +98,8 @@ const MESSAGES = {
     modal_add_url:       '+ 添加链接',
     modal_save:          '保存',
     modal_cancel:        '取消',
-    porn_toggle_title:   '显示／隐藏成人平台'
+    porn_toggle_title:        '显示／隐藏成人平台',
+    group_clear_frames_title: '清空所有视频框，开始新一轮'
   },
   en: {
     btn_copy:            'Copy',
@@ -106,6 +110,7 @@ const MESSAGES = {
     btn_resume_all:      'Resume',
     btn_mute_all:        'Mute',
     btn_unmute_all:      'Unmute',
+    btn_coffee_title:    'Buy me a coffee ☕',
     btn_open_tab:        '❐ New Tab',
     btn_open_tab_title:  'Open in new tab',
     btn_open_popup:      '⧉ New Window',
@@ -143,7 +148,8 @@ const MESSAGES = {
     modal_add_url:       '+ Add URL',
     modal_save:          'Save',
     modal_cancel:        'Cancel',
-    porn_toggle_title:   'Show / Hide Adult Platforms'
+    porn_toggle_title:        'Show / Hide Adult Platforms',
+    group_clear_frames_title: 'Clear all frames to start fresh'
   },
   ja: {
     btn_copy:            'コピー',
@@ -154,6 +160,7 @@ const MESSAGES = {
     btn_resume_all:      '再生',
     btn_mute_all:        'ミュート',
     btn_unmute_all:      'ミュート解除',
+    btn_coffee_title:    'コーヒーを奢ってください ☕',
     btn_open_tab:        '❐ 新タブ',
     btn_open_tab_title:  '新しいタブで開く',
     btn_open_popup:      '⧉ 新規ウィンドウ',
@@ -191,7 +198,8 @@ const MESSAGES = {
     modal_add_url:       '+ URLを追加',
     modal_save:          '保存',
     modal_cancel:        'キャンセル',
-    porn_toggle_title:   '成人向けプラットフォームを表示／非表示'
+    porn_toggle_title:        '成人向けプラットフォームを表示／非表示',
+    group_clear_frames_title: 'すべての枠をクリアして新しく始める'
   }
 };
 
