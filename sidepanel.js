@@ -229,8 +229,11 @@ function setupEventListeners() {
                 width: Math.max(window.screen.availWidth * 0.8 | 0, 900),
                 height: Math.max(window.screen.availHeight * 0.85 | 0, 600),
                 focused: true
+            }, () => {
+                // Close the side panel once the popup is ready
+                // (only has effect when running as a side panel, not tab/popup)
+                if (!isTabMode) window.close();
             });
-            // Don't close the side panel — user may want both open simultaneously
         };
 
         if (hasAny) {

@@ -434,7 +434,17 @@ if (!isSubscreen && !isInIframe) {
     // Determine whether the href is a video link
     const isVideoLink = (href) => {
         if (!href) return false;
-        return /\/(video|watch|embed|live)\b|viewkey=|\/videos\/\d+/i.test(href);
+        // Generic patterns: /video, /watch, /embed, /live, viewkey=, /videos/123
+        if (/\/(video|watch|embed|live)\b|viewkey=|\/videos\/\d+/i.test(href)) return true;
+        // Twitch: live channel pages look like  twitch.tv/channelname  or  /channelname
+        // They don't contain /video or /watch so we match them explicitly.
+        if (location.hostname.includes('twitch.tv')) {
+            // absolute URL: https://www.twitch.tv/username
+            if (/twitch\.tv\/([a-zA-Z0-9_]+)\/?$/.test(href)) return true;
+            // root-relative path: /username  (single path segment, no sub-paths)
+            if (/^\/[a-zA-Z0-9_]+\/?$/.test(href)) return true;
+        }
+        return false;
     };
 
     // Normalize URL (make it a full URL)

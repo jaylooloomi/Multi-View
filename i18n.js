@@ -46,7 +46,8 @@ const MESSAGES = {
     modal_name_placeholder: '備註（可留空）',
     modal_add_url:       '+ 新增網址',
     modal_save:          '儲存',
-    modal_cancel:        '取消'
+    modal_cancel:        '取消',
+    porn_toggle_title:   '顯示／隱藏成人平台'
   },
   zh_CN: {
     btn_copy:            '复制',
@@ -93,7 +94,8 @@ const MESSAGES = {
     modal_name_placeholder: '备注（可留空）',
     modal_add_url:       '+ 添加链接',
     modal_save:          '保存',
-    modal_cancel:        '取消'
+    modal_cancel:        '取消',
+    porn_toggle_title:   '显示／隐藏成人平台'
   },
   en: {
     btn_copy:            'Copy',
@@ -140,7 +142,8 @@ const MESSAGES = {
     modal_name_placeholder: 'Note (optional)',
     modal_add_url:       '+ Add URL',
     modal_save:          'Save',
-    modal_cancel:        'Cancel'
+    modal_cancel:        'Cancel',
+    porn_toggle_title:   'Show / Hide Adult Platforms'
   },
   ja: {
     btn_copy:            'コピー',
@@ -187,7 +190,8 @@ const MESSAGES = {
     modal_name_placeholder: 'メモ（省略可）',
     modal_add_url:       '+ URLを追加',
     modal_save:          '保存',
-    modal_cancel:        'キャンセル'
+    modal_cancel:        'キャンセル',
+    porn_toggle_title:   '成人向けプラットフォームを表示／非表示'
   }
 };
 
