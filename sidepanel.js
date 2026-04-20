@@ -1,5 +1,51 @@
 // Multi-View - Side Panel Logic
 
+// ── Porn-mosaic: hostname → local icon path ───────────────────────────────────
+const PORN_HOSTS = {
+    'pornhub':    'icons/icon-pornhub.png',
+    'xvideos':    'icons/icon-xvideos.png',
+    'xnxx':       'icons/icon-xnxx.png',
+    'xgroovy':    'icons/icon-xgroovy.png',
+    'xhamster':   'icons/icon-xhamster.png',
+    'rule34video':'icons/icon-rule34video.png',
+};
+
+/** Return icon path if url belongs to a porn host, else null */
+function getPornIcon(url) {
+    if (!url || url === 'about:blank') return null;
+    for (const [host, icon] of Object.entries(PORN_HOSTS)) {
+        if (url.includes(host)) return icon;
+    }
+    return null;
+}
+
+/**
+ * Show or hide the mosaic overlay for a single frame.
+ * Rule: mosaic ON  ↔  porn toggle is OFF  AND  iframe src is a porn site.
+ */
+function updateMosaicForFrame(frameId) {
+    const card   = document.getElementById(`wrapper${frameId}`);
+    const mosaic = document.getElementById(`porn-mosaic-${frameId}`);
+    const iframe = document.getElementById(`screen${frameId}`);
+    if (!card || !mosaic || !iframe) return;
+
+    const pornOn = document.getElementById('chk-porn-toggle')?.checked ?? true;
+    const icon   = getPornIcon(iframe.src);
+
+    if (!pornOn && icon) {
+        const img = mosaic.querySelector('.porn-mosaic-icon');
+        if (img) img.src = icon;           // relative path works in extension page
+        card.classList.add('porn-blurred');
+    } else {
+        card.classList.remove('porn-blurred');
+    }
+}
+
+/** Refresh mosaics for every frame (call on toggle change) */
+function updateAllMosaics() {
+    for (let i = 1; i <= 25; i++) updateMosaicForFrame(i);
+}
+
 // ── Toast notification ────────────────────────────────────────────────────────
 let _toastTimer = null;
 function showToast(msg, type = 'info') {
@@ -73,6 +119,9 @@ function autoSelectLayout(urlCount) {
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     setupEventListeners();
+    // Mosaics are created inside setupEventListeners' init loop;
+    // after loadSettings may have restored iframe srcs, re-evaluate all frames.
+    setTimeout(updateAllMosaics, 200);
 });
 
 function setupEventListeners() {
@@ -116,6 +165,7 @@ function setupEventListeners() {
         const on = pornToggleChk.checked;
         platformsBar.classList.toggle('porn-visible', on);
         localStorage.setItem('pornVisible', on ? '1' : '0');
+        updateAllMosaics();   // ← apply/remove mosaics immediately
     });
 
     // Platform icon bar — click navigates the active tab (not a new tab)
@@ -362,6 +412,21 @@ function setupEventListeners() {
         document.querySelector(`.stop-btn[data-frame="${i}"]`).addEventListener('click', () => {
             stopFrame(i);
         });
+
+        // Porn mosaic overlay — created once per frame, shown/hidden via updateMosaicForFrame()
+        (() => {
+            const box = document.querySelector(`#wrapper${i} .screen-box`);
+            if (box && !document.getElementById(`porn-mosaic-${i}`)) {
+                const mosaic = document.createElement('div');
+                mosaic.id        = `porn-mosaic-${i}`;
+                mosaic.className = 'porn-mosaic';
+                mosaic.innerHTML = `
+                    <img class="porn-mosaic-icon" src="" alt="Adult Content">
+                    <span class="porn-mosaic-label">成人內容已遮蔽</span>
+                    <span class="porn-mosaic-hint">開啟右上角切換按鈕以顯示</span>`;
+                box.appendChild(mosaic);
+            }
+        })();
 
         // Link button — open this frame's current video in a new popup window
         (() => {
@@ -1185,6 +1250,7 @@ function loadVideoToFrame(frameId, video, listIndex) {
         hidePlaceholder(frameId);
         hideInputOverlay(frameId);
         renderVideoList();
+        updateMosaicForFrame(frameId);   // ← mosaic check
     }
 }
 
@@ -1198,6 +1264,7 @@ function loadUrlToFrame(frameId, rawUrl) {
         hidePlaceholder(frameId);
         hideInputOverlay(frameId);
         renderVideoList();
+        updateMosaicForFrame(frameId);   // ← mosaic check
     }
 }
 
@@ -1217,6 +1284,7 @@ function stopFrame(frameId) {
 
     frameStates[frameId] = { videoId: null, listIndex: -1, isProcessing: false };
     renderVideoList();
+    updateMosaicForFrame(frameId);   // ← clear mosaic when frame is stopped
 }
 
 function reloadFrame(frameId) {
