@@ -796,18 +796,18 @@ function renderGroups() {
 
     // ── Utility buttons at the end of the groups bar ───────────────────────
     if (savedGroups.length > 0) {
-        // + : save current frames as a new group (same as btn-save-group)
+        // ⊕ : save current frames as a new group (same as btn-save-group)
         const saveGroupBtn = document.createElement('button');
         saveGroupBtn.className = 'group-chip-clear-frames';
-        saveGroupBtn.textContent = '+';
-        saveGroupBtn.title = t('btn_save_group');
+        saveGroupBtn.textContent = '⊕';
+        saveGroupBtn.title = t('group_add_new_title');
         saveGroupBtn.addEventListener('click', () => saveGroup());
         bar.appendChild(saveGroupBtn);
 
-        // − : clear all frames so the user can load a fresh set
+        // ⊖ : clear all frames so the user can load a fresh set
         const clearFramesBtn = document.createElement('button');
         clearFramesBtn.className = 'group-chip-clear-frames';
-        clearFramesBtn.textContent = '−';
+        clearFramesBtn.textContent = '⊖';
         clearFramesBtn.title = t('group_clear_frames_title');
         clearFramesBtn.addEventListener('click', () => {
             stopAllVideos();
@@ -816,19 +816,19 @@ function renderGroups() {
         });
         bar.appendChild(clearFramesBtn);
 
-        // ⊞ : compact / reorder frames (same as btn-compact)
+        // ≡ : compact / reorder frames (same as btn-compact)
         const compactBtn = document.createElement('button');
         compactBtn.className = 'group-chip-clear-frames';
-        compactBtn.textContent = '⊞';
+        compactBtn.textContent = '≡';
         compactBtn.title = t('btn_compact');
         compactBtn.addEventListener('click', () => document.getElementById('btn-compact').click());
         bar.appendChild(compactBtn);
 
-        // ⊡ : quick-save current group (same as btn-save-quick)
+        // ⊙ : quick-save current group (same as btn-save-quick)
         const quickSaveBtn = document.createElement('button');
         quickSaveBtn.className = 'group-chip-clear-frames';
-        quickSaveBtn.textContent = '⊡';
-        quickSaveBtn.title = t('btn_save_quick');
+        quickSaveBtn.textContent = '⊙';
+        quickSaveBtn.title = t('group_save_changes_title');
         quickSaveBtn.addEventListener('click', () => document.getElementById('btn-save-quick').click());
         bar.appendChild(quickSaveBtn);
     }

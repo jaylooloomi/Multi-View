@@ -11,7 +11,7 @@ const MESSAGES = {
     btn_mute_all:        '靜音',
     btn_unmute_all:      '取消靜音',
     btn_coffee_title:    '請我喝杯咖啡 ☕',
-    btn_open_tab:        '❐ 分頁',
+    btn_open_tab:        '❐ 開啟分頁',
     btn_open_tab_title:  '在新分頁開啟',
     btn_open_popup:      '⧉ 開新視窗',
     btn_open_popup_title:'在彈出視窗開啟（無瀏覽器工具列）',
@@ -49,7 +49,9 @@ const MESSAGES = {
     modal_save:          '儲存',
     modal_cancel:        '取消',
     porn_toggle_title:        '顯示／隱藏成人平台',
-    group_clear_frames_title: '清空所有影片框，開始新一輪'
+    group_clear_frames_title: '清空所有影片框，開始新一輪',
+    group_add_new_title:      '增加新群組',
+    group_save_changes_title: '儲存修改'
   },
   zh_CN: {
     btn_copy:            '复制',
@@ -61,7 +63,7 @@ const MESSAGES = {
     btn_mute_all:        '静音',
     btn_unmute_all:      '取消静音',
     btn_coffee_title:    '请我喝杯咖啡 ☕',
-    btn_open_tab:        '❐ 新标签',
+    btn_open_tab:        '❐ 开启标签',
     btn_open_tab_title:  '在新标签页开启',
     btn_open_popup:      '⧉ 新窗口',
     btn_open_popup_title:'在弹出窗口开启（无浏览器工具栏）',
@@ -99,7 +101,9 @@ const MESSAGES = {
     modal_save:          '保存',
     modal_cancel:        '取消',
     porn_toggle_title:        '显示／隐藏成人平台',
-    group_clear_frames_title: '清空所有视频框，开始新一轮'
+    group_clear_frames_title: '清空所有视频框，开始新一轮',
+    group_add_new_title:      '新增群组',
+    group_save_changes_title: '保存修改'
   },
   en: {
     btn_copy:            'Copy',
@@ -111,7 +115,7 @@ const MESSAGES = {
     btn_mute_all:        'Mute',
     btn_unmute_all:      'Unmute',
     btn_coffee_title:    'Buy me a coffee ☕',
-    btn_open_tab:        '❐ New Tab',
+    btn_open_tab:        '❐ Open Tab',
     btn_open_tab_title:  'Open in new tab',
     btn_open_popup:      '⧉ New Window',
     btn_open_popup_title:'Open in popup window (no browser toolbar)',
@@ -149,7 +153,9 @@ const MESSAGES = {
     modal_save:          'Save',
     modal_cancel:        'Cancel',
     porn_toggle_title:        'Show / Hide Adult Platforms',
-    group_clear_frames_title: 'Clear all frames to start fresh'
+    group_clear_frames_title: 'Clear all frames to start fresh',
+    group_add_new_title:      'Add New Group',
+    group_save_changes_title: 'Save Changes'
   },
   ja: {
     btn_copy:            'コピー',
@@ -161,7 +167,7 @@ const MESSAGES = {
     btn_mute_all:        'ミュート',
     btn_unmute_all:      'ミュート解除',
     btn_coffee_title:    'コーヒーを奢ってください ☕',
-    btn_open_tab:        '❐ 新タブ',
+    btn_open_tab:        '❐ タブを開く',
     btn_open_tab_title:  '新しいタブで開く',
     btn_open_popup:      '⧉ 新規ウィンドウ',
     btn_open_popup_title:'ポップアップウィンドウで開く（ツールバーなし）',
@@ -199,7 +205,9 @@ const MESSAGES = {
     modal_save:          '保存',
     modal_cancel:        'キャンセル',
     porn_toggle_title:        '成人向けプラットフォームを表示／非表示',
-    group_clear_frames_title: 'すべての枠をクリアして新しく始める'
+    group_clear_frames_title: 'すべての枠をクリアして新しく始める',
+    group_add_new_title:      'グループを追加',
+    group_save_changes_title: '変更を保存'
   }
 };
 
