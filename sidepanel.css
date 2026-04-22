@@ -354,6 +354,44 @@ body {
     color: #fff;
 }
 
+/* Export / Import buttons — same pill style as toggle-groups */
+#btn-export-groups,
+#btn-import-groups {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-dim);
+    border-radius: var(--r);
+    padding: 0 7px;
+    font-size: 11px;
+    cursor: pointer;
+    line-height: 20px;
+    height: 20px;
+    min-height: 20px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color 0.15s, color 0.15s;
+    user-select: none;
+}
+#btn-export-groups:hover,
+#btn-import-groups:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #fff;
+}
+body.theme-light #btn-export-groups,
+body.theme-light #btn-import-groups {
+    border-color: rgba(0,0,0,0.2);
+    color: #555;
+}
+body.theme-light #btn-export-groups:hover,
+body.theme-light #btn-import-groups:hover {
+    border-color: rgba(0,0,0,0.4);
+    color: #111;
+}
+
 /* ── Platforms Bar ──────────────────────────── */
 .platforms-bar {
     display: flex;

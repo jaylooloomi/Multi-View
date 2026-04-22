@@ -182,6 +182,48 @@ function setupEventListeners() {
         });
     });
 
+    // Export groups — download as JSON file
+    document.getElementById('btn-export-groups').addEventListener('click', () => {
+        if (savedGroups.length === 0) {
+            showToast(t('toast_export_none'), 'warn');
+            return;
+        }
+        const json = JSON.stringify({ multiview_groups: savedGroups }, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = 'multiview-groups.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast(t('toast_export_ok', savedGroups.length), 'ok');
+    });
+
+    // Import groups — read JSON file and merge into savedGroups
+    document.getElementById('import-file-input').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const data = JSON.parse(ev.target.result);
+                const imported = data.multiview_groups;
+                if (!Array.isArray(imported)) throw new Error('bad format');
+                // Merge: skip duplicates by id
+                const existingIds = new Set(savedGroups.map(g => g.id));
+                const newOnes = imported.filter(g => !existingIds.has(g.id));
+                savedGroups.push(...newOnes);
+                chrome.storage.local.set({ savedGroups });
+                renderGroups();
+                showToast(t('toast_import_ok', newOnes.length), 'ok');
+            } catch {
+                showToast(t('toast_import_error'), 'error');
+            }
+            e.target.value = ''; // reset so same file can be re-selected
+        };
+        reader.readAsText(file);
+    });
+
     // Groups-bar collapse toggle
     document.getElementById('btn-toggle-groups').addEventListener('click', () => {
         groupsBarCollapsed = !groupsBarCollapsed;
