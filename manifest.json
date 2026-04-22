@@ -25,7 +25,6 @@
       "48": "icon48.png",
       "128": "icon128.png"
    },
-   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz4tZsfS6Fg93PCMRqqurAh6Gem7B3SYEZbL5/Js/HrApFqjGnmMLYbRG0HGzvuWme6TJhP77oa505H8M2YOfTGQiD7KTYoUIc22p77v4J1H/pgGHDW0cHh3plRNGoFh42yF7/Rhcf9AVNI18ROPTfYH/5kh5sE9ibF2G7VFiNlrIBbye72H+ZIXJe1xHfVJJ8ctnUVZm1MGHcJ5DealV+I1UvsjfXAGAz5OtZfDgxR7Tsn73HvJJHPanpE+kyIh//SWZPtPynrXsytv9zVWbqrSbALEPfkPsP+/lWbZYiGCXCuVdDU57gcquTpO4xv9HVoeEvVqua4Mh/1G8GhzV6QIDAQAB",
    "manifest_version": 3,
    "name": "Multi-View",
    "permissions": [ "sidePanel", "tabs", "storage", "declarativeNetRequest", "declarativeNetRequestWithHostAccess", "clipboardRead" ],
