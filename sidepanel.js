@@ -861,7 +861,7 @@ function renderGroups() {
         // ⬇ : export groups to JSON file
         const exportBtn = document.createElement('button');
         exportBtn.className = 'group-chip-clear-frames';
-        exportBtn.textContent = '⬇';
+        exportBtn.textContent = '↓';
         exportBtn.title = t('btn_export_groups');
         exportBtn.addEventListener('click', () => {
             if (savedGroups.length === 0) { showToast(t('toast_export_none'), 'warn'); return; }
@@ -878,7 +878,7 @@ function renderGroups() {
         // ⬆ : import groups from JSON file
         const importBtn = document.createElement('button');
         importBtn.className = 'group-chip-clear-frames';
-        importBtn.textContent = '⬆';
+        importBtn.textContent = '↑';
         importBtn.title = t('btn_import_groups');
         importBtn.addEventListener('click', () => document.getElementById('import-file-input').click());
         bar.appendChild(importBtn);
