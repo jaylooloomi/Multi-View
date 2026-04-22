@@ -17,7 +17,7 @@
       "matches": [ "https://*.youtube.com/*", "https://*.nicovideo.jp/*", "https://*.vimeo.com/*", "https://*.tiktok.com/*", "https://*.twitch.tv/*", "https://*.pornhub.com/*", "https://*.rule34video.com/*", "https://*.ashemaletube.com/*", "https://*.xgroovy.com/*", "https://*.xhamster.com/*", "https://*.xhamster.desi/*", "https://*.xhamster.one/*" ],
       "run_at": "document_start"
    } ],
-   "description": "Multi-screen video player supporting YouTube, Pornhub, Twitch, TikTok, Vimeo, Nicovideo and more.",
+   "description": "Multi-screen video player supporting YouTube, Twitch, TikTok, Vimeo, Nicovideo and more.",
    "host_permissions": [ "*://www.youtube.com/*", "*://*.youtube.com/*", "*://*.googlevideo.com/*", "*://*.ytimg.com/*", "*://*.ggpht.com/*", "*://*.google.com/*", "*://*.doubleclick.net/*", "*://*.googleadservices.com/*", "*://*.nicovideo.jp/*", "*://embed.nicovideo.jp/*", "*://*.vimeo.com/*", "*://player.vimeo.com/*", "*://*.tiktok.com/*", "*://*.twitch.tv/*", "*://clips.twitch.tv/*", "*://player.twitch.tv/*", "*://*.pornhub.com/*", "*://*.rule34video.com/*", "*://*.ashemaletube.com/*", "*://*.xgroovy.com/*", "*://*.xhamster.com/*", "*://*.xhamster.desi/*", "*://*.xhamster.one/*", "*://*.xhcdn.com/*", "*://*.xhstrm.net/*" ],
    "icons": {
       "16": "icon16.png",
