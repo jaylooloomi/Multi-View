@@ -828,6 +828,7 @@ function renderGroups() {
         const quickSaveBtn = document.createElement('button');
         quickSaveBtn.className = 'group-chip-clear-frames';
         quickSaveBtn.textContent = '💾';
+        quickSaveBtn.style.fontSize = '11px'; // emoji字型比一般字符大，補償縮小
         quickSaveBtn.title = t('group_save_changes_title');
         quickSaveBtn.addEventListener('click', () => document.getElementById('btn-save-quick').click());
         bar.appendChild(quickSaveBtn);
