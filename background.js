@@ -139,13 +139,19 @@ async function setupNetRequestRules() {
 // Calling setupNetRequestRules() immediately AND inside onInstalled causes a race
 // condition (two concurrent getDynamicRules → updateDynamicRules flows) that
 // triggers "Failed to update DNR rules".
-chrome.runtime.onInstalled.addListener(setupNetRequestRules);
-chrome.runtime.onStartup.addListener(setupNetRequestRules);
+// onInstalled: first install or extension update — set DNR rules AND side panel behavior.
+// setPanelBehavior is a persistent Chrome setting; calling it here (not at top level)
+// avoids "Cannot call API in a non-event context" errors in MV3 service workers.
+chrome.runtime.onInstalled.addListener(() => {
+    setupNetRequestRules();
+    chrome.sidePanel
+        .setPanelBehavior({ openPanelOnActionClick: true })
+        .catch((error) => console.error('setPanelBehavior failed:', error));
+});
 
-// Configure the side panel to open when the icon is clicked
-chrome.sidePanel
-  .setPanelBehavior({ openPanelOnActionClick: true })
-  .catch((error) => console.error(error));
+// onStartup: Chrome starts with extension already installed — re-apply DNR rules only.
+// (setPanelBehavior is already persisted from the last onInstalled call.)
+chrome.runtime.onStartup.addListener(setupNetRequestRules);
 
 // Receive URL submissions from content_script, open the panel, then pass the URLs
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

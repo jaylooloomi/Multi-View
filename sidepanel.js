@@ -824,10 +824,10 @@ function renderGroups() {
         compactBtn.addEventListener('click', () => document.getElementById('btn-compact').click());
         bar.appendChild(compactBtn);
 
-        // ⊙ : quick-save current group (same as btn-save-quick)
+        // 💾 : quick-save current group (same as btn-save-quick)
         const quickSaveBtn = document.createElement('button');
         quickSaveBtn.className = 'group-chip-clear-frames';
-        quickSaveBtn.textContent = '⊙';
+        quickSaveBtn.textContent = '💾';
         quickSaveBtn.title = t('group_save_changes_title');
         quickSaveBtn.addEventListener('click', () => document.getElementById('btn-save-quick').click());
         bar.appendChild(quickSaveBtn);

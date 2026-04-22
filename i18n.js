@@ -51,7 +51,13 @@ const MESSAGES = {
     porn_toggle_title:        '顯示／隱藏成人平台',
     group_clear_frames_title: '清空所有影片框，開始新一輪',
     group_add_new_title:      '增加新群組',
-    group_save_changes_title: '儲存修改'
+    group_save_changes_title: '儲存修改',
+    ctrl_play:   '播放',
+    ctrl_pause:  '暫停',
+    ctrl_reload: '重新載入',
+    ctrl_stop:   '停止',
+    ctrl_skip:   '下一個',
+    ctrl_link:   '在新視窗開啟此影片'
   },
   zh_CN: {
     btn_copy:            '复制',
@@ -103,7 +109,13 @@ const MESSAGES = {
     porn_toggle_title:        '显示／隐藏成人平台',
     group_clear_frames_title: '清空所有视频框，开始新一轮',
     group_add_new_title:      '新增群组',
-    group_save_changes_title: '保存修改'
+    group_save_changes_title: '保存修改',
+    ctrl_play:   '播放',
+    ctrl_pause:  '暂停',
+    ctrl_reload: '重新加载',
+    ctrl_stop:   '停止',
+    ctrl_skip:   '下一个',
+    ctrl_link:   '在新窗口打开此视频'
   },
   en: {
     btn_copy:            'Copy',
@@ -155,7 +167,13 @@ const MESSAGES = {
     porn_toggle_title:        'Show / Hide Adult Platforms',
     group_clear_frames_title: 'Clear all frames to start fresh',
     group_add_new_title:      'Add New Group',
-    group_save_changes_title: 'Save Changes'
+    group_save_changes_title: 'Save Changes',
+    ctrl_play:   'Play',
+    ctrl_pause:  'Pause',
+    ctrl_reload: 'Reload',
+    ctrl_stop:   'Stop',
+    ctrl_skip:   'Next',
+    ctrl_link:   'Open in new window'
   },
   ja: {
     btn_copy:            'コピー',
@@ -207,7 +225,13 @@ const MESSAGES = {
     porn_toggle_title:        '成人向けプラットフォームを表示／非表示',
     group_clear_frames_title: 'すべての枠をクリアして新しく始める',
     group_add_new_title:      'グループを追加',
-    group_save_changes_title: '変更を保存'
+    group_save_changes_title: '変更を保存',
+    ctrl_play:   '再生',
+    ctrl_pause:  '一時停止',
+    ctrl_reload: '再読み込み',
+    ctrl_stop:   '停止',
+    ctrl_skip:   '次へ',
+    ctrl_link:   '新しいウィンドウで開く'
   }
 };
 
@@ -254,4 +278,12 @@ function applyI18n() {
   // Update the locale combobox to reflect current selection
   var sel = document.getElementById('locale-select');
   if (sel) sel.value = _locale;
+
+  // Hover-controls: update title on all 25 frames at once via class selectors
+  document.querySelectorAll('.play-btn').forEach(function(el)   { el.title = t('ctrl_play');   });
+  document.querySelectorAll('.pause-btn').forEach(function(el)  { el.title = t('ctrl_pause');  });
+  document.querySelectorAll('.reload-btn').forEach(function(el) { el.title = t('ctrl_reload'); });
+  document.querySelectorAll('.stop-btn').forEach(function(el)   { el.title = t('ctrl_stop');   });
+  document.querySelectorAll('.skip-btn').forEach(function(el)   { el.title = t('ctrl_skip');   });
+  document.querySelectorAll('.btn-link').forEach(function(el)   { el.title = t('ctrl_link');   });
 }
