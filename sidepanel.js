@@ -194,7 +194,12 @@ function setupEventListeners() {
         showToast(t('toast_export_ok', savedGroups.length), 'ok');
     });
 
-    // Import groups — triggered by hidden file input (↑ label in topbar)
+    // Import button — trigger hidden file input
+    document.getElementById('btn-import-groups').addEventListener('click', () => {
+        document.getElementById('import-file-input').click();
+    });
+
+    // Import groups — read JSON when file is selected
     document.getElementById('import-file-input').addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
