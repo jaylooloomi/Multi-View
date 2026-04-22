@@ -182,7 +182,19 @@ function setupEventListeners() {
         });
     });
 
-    // Import groups — triggered by hidden file input (⬆ button in groups bar)
+    // Export groups — download as JSON file (↓ button in topbar)
+    document.getElementById('btn-export-groups').addEventListener('click', () => {
+        if (savedGroups.length === 0) { showToast(t('toast_export_none'), 'warn'); return; }
+        const json = JSON.stringify({ multiview_groups: savedGroups }, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url; a.download = 'multiview-groups.json'; a.click();
+        URL.revokeObjectURL(url);
+        showToast(t('toast_export_ok', savedGroups.length), 'ok');
+    });
+
+    // Import groups — triggered by hidden file input (↑ label in topbar)
     document.getElementById('import-file-input').addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -858,30 +870,6 @@ function renderGroups() {
         quickSaveBtn.addEventListener('click', () => document.getElementById('btn-save-quick').click());
         bar.appendChild(quickSaveBtn);
 
-        // ⬇ : export groups to JSON file
-        const exportBtn = document.createElement('button');
-        exportBtn.className = 'group-chip-clear-frames';
-        exportBtn.textContent = '↓';
-        exportBtn.title = t('btn_export_groups');
-        exportBtn.addEventListener('click', () => {
-            if (savedGroups.length === 0) { showToast(t('toast_export_none'), 'warn'); return; }
-            const json = JSON.stringify({ multiview_groups: savedGroups }, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
-            const url  = URL.createObjectURL(blob);
-            const a    = document.createElement('a');
-            a.href = url; a.download = 'multiview-groups.json'; a.click();
-            URL.revokeObjectURL(url);
-            showToast(t('toast_export_ok', savedGroups.length), 'ok');
-        });
-        bar.appendChild(exportBtn);
-
-        // ⬆ : import groups from JSON file
-        const importBtn = document.createElement('button');
-        importBtn.className = 'group-chip-clear-frames';
-        importBtn.textContent = '↑';
-        importBtn.title = t('btn_import_groups');
-        importBtn.addEventListener('click', () => document.getElementById('import-file-input').click());
-        bar.appendChild(importBtn);
     }
 
     // Groups bar and toggle button are always visible (collapsed state persists)
