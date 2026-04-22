@@ -794,9 +794,9 @@ function renderGroups() {
         bar.appendChild(chip);
     });
 
-    // ── Utility buttons at the end of the groups bar ───────────────────────
-    if (savedGroups.length > 0) {
-        // ⊕ : save current frames as a new group (same as btn-save-group)
+    // ── Utility buttons — always shown so users can save their first group ──
+    {
+        // + : save current frames as a new group (same as btn-save-group)
         const saveGroupBtn = document.createElement('button');
         saveGroupBtn.className = 'group-chip-clear-frames';
         saveGroupBtn.textContent = '+';
@@ -804,7 +804,7 @@ function renderGroups() {
         saveGroupBtn.addEventListener('click', () => saveGroup());
         bar.appendChild(saveGroupBtn);
 
-        // ⊖ : clear all frames so the user can load a fresh set
+        // - : clear all frames so the user can load a fresh set
         const clearFramesBtn = document.createElement('button');
         clearFramesBtn.className = 'group-chip-clear-frames';
         clearFramesBtn.textContent = '-';
@@ -834,13 +834,13 @@ function renderGroups() {
         bar.appendChild(quickSaveBtn);
     }
 
-    const hasGroups = savedGroups.length > 0;
-    bar.style.display = (hasGroups && !groupsBarCollapsed) ? 'flex' : 'none';
+    // Groups bar and toggle button are always visible (collapsed state persists)
+    bar.style.display = groupsBarCollapsed ? 'none' : 'flex';
 
-    // Update toggle button arrow & visibility
+    // Update toggle button arrow — always shown
     const toggleBtn = document.getElementById('btn-toggle-groups');
     if (toggleBtn) {
-        toggleBtn.style.display = hasGroups ? '' : 'none';
+        toggleBtn.style.display = '';   // always visible
         toggleBtn.textContent = groupsBarCollapsed ? '▼' : '▲';
         toggleBtn.title = groupsBarCollapsed ? '展開群組列' : '收合群組列';
     }
