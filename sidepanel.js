@@ -799,7 +799,7 @@ function renderGroups() {
         // ⊕ : save current frames as a new group (same as btn-save-group)
         const saveGroupBtn = document.createElement('button');
         saveGroupBtn.className = 'group-chip-clear-frames';
-        saveGroupBtn.textContent = '⊕';
+        saveGroupBtn.textContent = '+';
         saveGroupBtn.title = t('group_add_new_title');
         saveGroupBtn.addEventListener('click', () => saveGroup());
         bar.appendChild(saveGroupBtn);
@@ -807,7 +807,7 @@ function renderGroups() {
         // ⊖ : clear all frames so the user can load a fresh set
         const clearFramesBtn = document.createElement('button');
         clearFramesBtn.className = 'group-chip-clear-frames';
-        clearFramesBtn.textContent = '⊖';
+        clearFramesBtn.textContent = '-';
         clearFramesBtn.title = t('group_clear_frames_title');
         clearFramesBtn.addEventListener('click', () => {
             stopAllVideos();
