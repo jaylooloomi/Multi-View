@@ -100,13 +100,13 @@
 | **TikTok** | 使用影片頁面 URL（TikTok 自身限制，部分影片可能無法播放）|
 | **PornHub** | 影片頁面 URL 自動轉 embed |
 | **XHamster** | xhamster.com / xhamster.desi / xhamster.one |
-| **Rule34Video** | 支援 |
-| **Ashemaletube** | 支援 |
-| **XGroovy** | 支援 |
-| **BitChute** | 支援 |
-| **Odysee** | 支援 |
-| **XVideos** | 部分支援（見下方「已知限制」）|
-| **XNXX** | 部分支援（見下方「已知限制」）|
+| **Rule34Video** | 影片頁面 URL 自動轉 embed |
+| **Ashemaletube** | 影片頁面 URL 自動轉 embed |
+| **XGroovy** | 影片頁面 URL 自動轉 embed |
+| **BitChute** | 影片頁面 URL 自動轉 embed |
+| **Odysee** | 影片頁面 URL 自動轉 embed |
+| **XVideos** | 部分支援，embed 頁面可能受平台 X-Frame-Options 限制（見下方「已知限制」）|
+| **XNXX** | 部分支援，embed 頁面可能受平台 X-Frame-Options 限制（見下方「已知限制」）|
 
 ---
 
