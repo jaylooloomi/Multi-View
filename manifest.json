@@ -31,5 +31,8 @@
    "side_panel": {
       "default_path": "sidepanel.html"
    },
-   "version": "2.0"
+   "version": "2.0",
+   "config": {
+      "showAdultGroup": false
+   }
 }

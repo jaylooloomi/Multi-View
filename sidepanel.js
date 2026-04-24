@@ -117,6 +117,13 @@ function autoSelectLayout(urlCount) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Apply manifest.json config: showAdultGroup controls adult platforms visibility
+    const _cfg = chrome.runtime.getManifest().config || {};
+    if (_cfg.showAdultGroup === false) {
+        const adultGroup = document.querySelector('.platforms-group--adult');
+        if (adultGroup) adultGroup.style.display = 'none';
+    }
+
     loadSettings();
     setupEventListeners();
     // Mosaics are created inside setupEventListeners' init loop;
@@ -158,7 +165,7 @@ function setupEventListeners() {
     // Porn toggle — show/hide adult platform icons; state persisted in localStorage
     const pornToggleChk = document.getElementById('chk-porn-toggle');
     const platformsBar  = document.getElementById('platforms-bar');
-    const _pornVisible  = localStorage.getItem('pornVisible') === '1';
+    const _pornVisible  = localStorage.getItem('pornVisible') !== '0';
     pornToggleChk.checked = _pornVisible;
     if (_pornVisible) platformsBar.classList.add('porn-visible');
     pornToggleChk.addEventListener('change', () => {
